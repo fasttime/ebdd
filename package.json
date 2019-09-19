@@ -1,0 +1,47 @@
+{
+  "name": "ebdd",
+  "version": "0.0.0",
+  "description": "Extended BDD interface for Mocha",
+  "keywords": [
+    "bdd",
+    "mocha",
+    "test"
+  ],
+  "bugs": "https://github.com/fasttime/ebdd/issues",
+  "license": "ISC",
+  "author": "Francesco Trotta <ft@fasttime.org> (https://github.com/fasttime)",
+  "files": [
+    "ebdd.js"
+  ],
+  "main": "ebdd.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fasttime/ebdd.git"
+  },
+  "scripts": {
+    "build": "npm install && gulp",
+    "test": "TS_NODE_PROJECT=test/tsconfig.json mocha --require=ts-node/register --require=source-map-support/register --check-leaks test/**/*.spec.ts"
+  },
+  "devDependencies": {
+    "@types/mocha": "~5.2.7",
+    "@types/sinon": "~7.0.13",
+    "ansi-colors": "~4.1.1",
+    "del": "~5.1.0",
+    "gulp": "~4.0.2",
+    "gulp-fasttime-lint": "~0.16.0",
+    "gulp-typescript": "~5.0.1",
+    "mocha": "~6.2.0",
+    "nyc": "~14.1.1",
+    "rollup": "~1.21.2",
+    "sinon": "~7.4.1",
+    "source-map-support": "~0.5.13",
+    "ts-node": "~8.4.1",
+    "typescript": "~3.6.2"
+  },
+  "peerDependencies": {
+    "mocha": ">=3.0.0"
+  }
+}
