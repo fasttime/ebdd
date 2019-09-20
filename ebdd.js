@@ -1,3 +1,5 @@
+// EBDD 0.1.0 – https://github.com/fasttime/EBDD
+
 'use strict';
 
 var TitleFormatter = /** @class */ (function () {

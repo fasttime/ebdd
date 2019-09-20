@@ -109,15 +109,17 @@ task
 
 async function bundle(inputPath, outputPath)
 {
-    const { rollup } = require('rollup');
+    const { homepage, version } = require('./package.json');
+    const { rollup }            = require('rollup');
 
     const inputOptions = { input: inputPath };
     const bundle = await rollup(inputOptions);
     const outputOptions =
     {
-        esModule: false,
-        file: outputPath,
-        format: 'cjs',
+        banner:     `// EBDD ${version} – ${homepage}\n`,
+        esModule:   false,
+        file:       outputPath,
+        format:     'cjs',
     };
     await bundle.write(outputOptions);
 }
