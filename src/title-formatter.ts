@@ -45,9 +45,19 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
 {
     function findNextPlaceholder(): Placeholder | null
     {
-        const rankMatch = rankRegExp.exec(titlePattern);
-        if (!rankMatch)
-            return null;
+        let rankMatch: RegExpExecArray | null;
+        let start: number;
+        for (;;)
+        {
+            rankMatch = rankRegExp.exec(titlePattern);
+            if (!rankMatch)
+                return null;
+            start = rankMatch.index;
+            const prevChar = titlePattern[start - 1];
+            if (prevChar !== '\\')
+                break;
+            rankRegExp.lastIndex = start + 1;
+        }
         const [, rank] = rankMatch;
         const paramIndex = rank ? rank as any - 1 : 0;
         const keys: string[] = [];
@@ -68,7 +78,7 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
             index += propNameMatch[0].length;
         }
         rankRegExp.lastIndex = index;
-        const placeholder = makePlaceholder(keys, rankMatch.index, index, paramIndex);
+        const placeholder = makePlaceholder(keys, start, index, paramIndex);
         validatePlaceholder(placeholder, !rank);
         return placeholder;
     }
@@ -77,6 +87,15 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
     {
         const rawPlaceholder = titlePattern.substring(start, end);
         return rawPlaceholder;
+    }
+
+    function pushStaticChunk(start: number): void
+    {
+        if (end < start)
+        {
+            const chunk = titlePattern.substring(end, start).replace(/\\#/g, '#');
+            chunks.push(chunk);
+        }
     }
 
     function validatePlaceholder(placeholder: Placeholder, rankless: boolean): void
@@ -90,18 +109,18 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
                 switch (paramCount)
                 {
                 case 2:
-                    rankSpecification = '@1 or @2';
+                    rankSpecification = '#1 or #2';
                     break;
                 case 3:
-                    rankSpecification = '@1, @2 or @3';
+                    rankSpecification = '#1, #2 or #3';
                     break;
                 default:
-                    rankSpecification = `@1, @2, … @${paramCount}`;
+                    rankSpecification = `#1, #2, … #${paramCount}`;
                     break;
                 }
                 const message =
                 `The placeholder ${rawPlaceholder} is ambiguous because there are ${paramCount} ` +
-                `parameters. Use ${rankSpecification} instead of @ to refer to a specific ` +
+                `parameters. Use ${rankSpecification} instead of # to refer to a specific ` +
                 'parameter.';
                 throw Error(message);
             }
@@ -120,7 +139,7 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
         }
     }
 
-    const rankRegExp = /@([1-9]\d*)?(?![$\w\u0080-\uffff])/g;
+    const rankRegExp = /#([1-9]\d*)?(?![$\w\u0080-\uffff])/g;
     const chunks: Chunk[] = [];
     let end = 0;
     {
@@ -128,14 +147,12 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
         while (placeholder = findNextPlaceholder())
         {
             const { start } = placeholder;
-            if (end < start)
-                chunks.push(titlePattern.substring(end, start));
+            pushStaticChunk(start);
             chunks.push(placeholder);
             ({ end } = placeholder);
         }
     }
-    if (end < titlePattern.length)
-        chunks.push(titlePattern.slice(end));
+    pushStaticChunk(titlePattern.length);
     return chunks;
 }
 

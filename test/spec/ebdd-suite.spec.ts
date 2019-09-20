@@ -43,7 +43,7 @@ describe
             (
                 ebddDescribeAny,
                 bddDescribeAny,
-                '"@" is good',
+                '"#" is good',
                 suiteCallback,
                 ([letter]: readonly unknown[]) => `"${letter}" is good`,
                 [['A'], ['B'], ['C']],
@@ -447,7 +447,7 @@ describe
                 (
                     ebddDescribeAny,
                     bddDescribeAny,
-                    '@1 @2',
+                    '#1 #2',
                     suiteCallback,
                     ([count, food]: readonly unknown[]) => `${count} ${food}`,
                     expectedParamsList,

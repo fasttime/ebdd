@@ -48,8 +48,7 @@ export interface EBDDGlobals
 
 export interface MochaConstructor
 {
-    readonly Suite:         { readonly constants: { [ConstantName: string]: string; }; };
-    readonly interfaces:    { [InterfaceName: string]: (suite: Suite) => void; };
+    readonly interfaces: { [InterfaceName: string]: (suite: Suite) => void; };
 }
 
 enum Mode { NORMAL, ONLY, SKIP }
@@ -447,15 +446,14 @@ function createParamLists
     throw TypeError(message);
 }
 
-export function initEBDD({ Suite, interfaces }: MochaConstructor): (suite: Suite) => void
+export function initEBDD({ interfaces }: MochaConstructor): (suite: Suite) => void
 {
     const { bdd } = interfaces;
-    const { EVENT_FILE_PRE_REQUIRE } = Suite.constants;
     const ebdd =
     (suite: Suite): void =>
     {
         bdd(suite);
-        suite.on(EVENT_FILE_PRE_REQUIRE, createInterface);
+        suite.on('pre-require', createInterface);
     };
     interfaces.ebdd = ebdd;
     return ebdd;

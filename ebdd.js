@@ -25,9 +25,18 @@ var TitleFormatter = /** @class */ (function () {
 }());
 function createChunks(titlePattern, paramCount) {
     function findNextPlaceholder() {
-        var rankMatch = rankRegExp.exec(titlePattern);
-        if (!rankMatch)
-            return null;
+        var rankMatch;
+        var start;
+        for (;;) {
+            rankMatch = rankRegExp.exec(titlePattern);
+            if (!rankMatch)
+                return null;
+            start = rankMatch.index;
+            var prevChar = titlePattern[start - 1];
+            if (prevChar !== '\\')
+                break;
+            rankRegExp.lastIndex = start + 1;
+        }
         var rank = rankMatch[1];
         var paramIndex = rank ? rank - 1 : 0;
         var keys = [];
@@ -44,7 +53,7 @@ function createChunks(titlePattern, paramCount) {
             index += propNameMatch[0].length;
         }
         rankRegExp.lastIndex = index;
-        var placeholder = makePlaceholder(keys, rankMatch.index, index, paramIndex);
+        var placeholder = makePlaceholder(keys, start, index, paramIndex);
         validatePlaceholder(placeholder, !rank);
         return placeholder;
     }
@@ -53,6 +62,12 @@ function createChunks(titlePattern, paramCount) {
         var rawPlaceholder = titlePattern.substring(start, end);
         return rawPlaceholder;
     }
+    function pushStaticChunk(start) {
+        if (end < start) {
+            var chunk = titlePattern.substring(end, start).replace(/\\#/g, '#');
+            chunks.push(chunk);
+        }
+    }
     function validatePlaceholder(placeholder, rankless) {
         if (rankless) {
             if (paramCount > 1) {
@@ -60,17 +75,17 @@ function createChunks(titlePattern, paramCount) {
                 var rankSpecification = void 0;
                 switch (paramCount) {
                     case 2:
-                        rankSpecification = '@1 or @2';
+                        rankSpecification = '#1 or #2';
                         break;
                     case 3:
-                        rankSpecification = '@1, @2 or @3';
+                        rankSpecification = '#1, #2 or #3';
                         break;
                     default:
-                        rankSpecification = "@1, @2, \u2026 @" + paramCount;
+                        rankSpecification = "#1, #2, \u2026 #" + paramCount;
                         break;
                 }
                 var message = "The placeholder " + rawPlaceholder + " is ambiguous because there are " + paramCount + " " +
-                    ("parameters. Use " + rankSpecification + " instead of @ to refer to a specific ") +
+                    ("parameters. Use " + rankSpecification + " instead of # to refer to a specific ") +
                     'parameter.';
                 throw Error(message);
             }
@@ -84,21 +99,19 @@ function createChunks(titlePattern, paramCount) {
             }
         }
     }
-    var rankRegExp = /@([1-9]\d*)?(?![$\w\u0080-\uffff])/g;
+    var rankRegExp = /#([1-9]\d*)?(?![$\w\u0080-\uffff])/g;
     var chunks = [];
     var end = 0;
     {
         var placeholder = void 0;
         while (placeholder = findNextPlaceholder()) {
             var start = placeholder.start;
-            if (end < start)
-                chunks.push(titlePattern.substring(end, start));
+            pushStaticChunk(start);
             chunks.push(placeholder);
             (end = placeholder.end);
         }
     }
-    if (end < titlePattern.length)
-        chunks.push(titlePattern.slice(end));
+    pushStaticChunk(titlePattern.length);
     return chunks;
 }
 function makePlaceholder(keys, start, end, paramIndex) {
@@ -348,12 +361,11 @@ function createParamLists(params, baseMode) {
     throw TypeError(message);
 }
 function initEBDD(_a) {
-    var Suite = _a.Suite, interfaces = _a.interfaces;
+    var interfaces = _a.interfaces;
     var bdd = interfaces.bdd;
-    var EVENT_FILE_PRE_REQUIRE = Suite.constants.EVENT_FILE_PRE_REQUIRE;
     var ebdd = function (suite) {
         bdd(suite);
-        suite.on(EVENT_FILE_PRE_REQUIRE, createInterface);
+        suite.on('pre-require', createInterface);
     };
     interfaces.ebdd = ebdd;
     return ebdd;

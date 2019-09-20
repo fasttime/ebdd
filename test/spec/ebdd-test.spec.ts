@@ -47,7 +47,7 @@ describe
                 (
                     ebddItAny,
                     bddItAny,
-                    '"@" is good',
+                    '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
                     [['A'], ['B'], ['C']],
@@ -65,7 +65,7 @@ describe
                 (
                     ebddItAny,
                     bddItAny,
-                    '"@" is good',
+                    '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
                     [['A'], ['B'], ['C']],
@@ -462,7 +462,7 @@ describe
                 (
                     ebddItAny,
                     bddItAny,
-                    '@1 @2',
+                    '#1 #2',
                     testCallback,
                     ([count, food]: readonly unknown[]) => `${count} ${food}`,
                     expectedParamsList,

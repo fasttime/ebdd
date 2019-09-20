@@ -1,7 +1,7 @@
-import { MochaConstructor, createInterface, initEBDD }  from '../../src/mocha-interface';
-import { deepStrictEqual, ok }                          from 'assert';
-import { Suite, interfaces }                            from 'mocha';
-import { restore, stub }                                from 'sinon';
+import { createInterface, initEBDD }    from '../../src/mocha-interface';
+import { deepStrictEqual, ok }          from 'assert';
+import { Suite, interfaces }            from 'mocha';
+import { restore, stub }                from 'sinon';
 
 describe
 (
@@ -15,9 +15,8 @@ describe
             'sets up correctly',
             () =>
             {
-                const mochaConstructor: MochaConstructor = { Suite, interfaces } as any;
                 const bdd = stub(interfaces, 'bdd');
-                initEBDD(mochaConstructor);
+                initEBDD({ interfaces });
                 const { ebdd } =
                 interfaces as typeof interfaces & { ebdd: (suite: Suite) => void; };
                 const suite = new Suite('abc');
