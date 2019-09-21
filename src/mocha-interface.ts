@@ -380,12 +380,13 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
         case Mode.ONLY:
             return bddIt.only;
         case Mode.SKIP:
-            return bddIt.skip;
+            return bddXit;
         }
     }
 
     const bddDescribe   = (context as MochaGlobals).describe;
     const bddIt         = (context as MochaGlobals).it;
+    const bddXit        = (title: string): Test => bddIt(title);
 
     context.describe = context.context =
     createUnparameterizedSuiteFunction();

@@ -317,11 +317,12 @@ function createInterface(context) {
             case Mode.ONLY:
                 return bddIt.only;
             case Mode.SKIP:
-                return bddIt.skip;
+                return bddXit;
         }
     }
     var bddDescribe = context.describe;
     var bddIt = context.it;
+    var bddXit = function (title) { return bddIt(title); };
     context.describe = context.context =
         createUnparameterizedSuiteFunction();
     context.xdescribe = context.xcontext =

@@ -10,17 +10,24 @@ describe
     'EBDD test functions',
     () =>
     {
-        function assertBDDIt(ebddItAny: UnparameterizedTestFunction, bddItAny: SinonStub): void
+        interface BDDCallData
         {
+            readonly it:    SinonStub;
+            readonly useFn: boolean;
+        }
+
+        function assertBDDIt(ebddItAny: UnparameterizedTestFunction, bddCallData: BDDCallData): void
+        {
+            const { it, useFn } = bddCallData;
             const title = '123';
             {
                 const fn =
                 (): void =>
                 { };
                 const actualItReturnValue = ebddItAny(title, fn);
-                ok(bddItAny.calledOnce);
-                const { lastCall } = bddItAny;
-                deepStrictEqual(lastCall.args, [title, fn]);
+                ok(it.calledOnce);
+                const { lastCall } = it;
+                deepStrictEqual(lastCall.args, useFn ? [title, fn] : [title]);
                 strictEqual(actualItReturnValue, lastCall.returnValue);
             }
             {
@@ -28,15 +35,18 @@ describe
                 (done: Done): void =>
                 { };
                 const actualItReturnValue = ebddItAny(title, fn);
-                ok(bddItAny.calledTwice);
-                const { lastCall } = bddItAny;
-                deepStrictEqual(lastCall.args, [title, fn]);
+                ok(it.calledTwice);
+                const { lastCall } = it;
+                deepStrictEqual(lastCall.args, useFn ? [title, fn] : [title]);
                 strictEqual(actualItReturnValue, lastCall.returnValue);
             }
         }
 
         function assertBDDIts<ParamListType extends unknown[]>
-        (ebddItAny: ParameterizedTestFunction<ParamListType>, bddItAny: readonly SinonStub[]):
+        (
+            ebddItAny: ParameterizedTestFunction<ParamListType>,
+            bddCallDataList: readonly BDDCallData[],
+        ):
         void
         {
             {
@@ -46,7 +56,7 @@ describe
                 assertBDDItsWithParams
                 (
                     ebddItAny,
-                    bddItAny,
+                    bddCallDataList,
                     '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
@@ -64,7 +74,7 @@ describe
                 assertBDDItsWithParams
                 (
                     ebddItAny,
-                    bddItAny,
+                    bddCallDataList,
                     '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
@@ -77,7 +87,7 @@ describe
         function assertBDDItsWithParams<ParamListType extends unknown[]>
         (
             ebddItAny:          ParameterizedTestFunction<ParamListType>,
-            bddItAny:           readonly SinonStub[],
+            bddCallDataList:    readonly BDDCallData[],
             titlePattern:       string,
             testCallback:       (...args: any) => void,
             getExpectedTitle:   (expectedParams: readonly unknown[]) => string,
@@ -95,15 +105,16 @@ describe
             const actualItReturnValue = ebddItAny(titlePattern, testCallbackSpy);
             const uniqueBDDItAny: CallCountingStub[] = [];
             const spyCalls =
-            bddItAny.map
+            bddCallDataList.map
             (
-                (bddItAny: CallCountingStub): SinonSpyCall =>
+                (bddCallData: BDDCallData): SinonSpyCall =>
                 {
-                    if (uniqueBDDItAny.indexOf(bddItAny) < 0)
-                        uniqueBDDItAny.push(bddItAny);
-                    const nextCallIndex = bddItAny.nextCallIndex || 0;
-                    bddItAny.nextCallIndex = nextCallIndex + 1;
-                    const spyCall = bddItAny.getCall(nextCallIndex);
+                    const { it }: { it: CallCountingStub; } = bddCallData;
+                    if (uniqueBDDItAny.indexOf(it) < 0)
+                        uniqueBDDItAny.push(it);
+                    const nextCallIndex = it.nextCallIndex || 0;
+                    it.nextCallIndex = nextCallIndex + 1;
+                    const spyCall = it.getCall(nextCallIndex);
                     return spyCall;
                 },
             );
@@ -121,9 +132,9 @@ describe
             // it callback counts
             uniqueBDDItAny.forEach
             (
-                (bddItAny: CallCountingStub) =>
+                (it: CallCountingStub) =>
                 {
-                    strictEqual(bddItAny.callCount, bddItAny.nextCallIndex);
+                    strictEqual(it.callCount, it.nextCallIndex);
                 },
             );
 
@@ -141,14 +152,25 @@ describe
             // Test callback functions calls
             spyCalls.forEach
             (
-                ({ args: [, actualTestCallback] }: SinonSpyCall, index: number) =>
+                ({ args: [, actualTestCallback] }: SinonSpyCall, index: number): void =>
                 {
-                    testCallbackSpy.resetHistory();
-                    const expectedThis = { };
-                    actualTestCallback.call(expectedThis, ...extraArgs);
-                    deepStrictEqual(testCallbackSpy.lastCall.thisValue, expectedThis);
                     deepStrictEqual
-                    (testCallbackSpy.lastCall.args, [...expectedParamsList[index], ...extraArgs]);
+                    (
+                        typeof actualTestCallback,
+                        bddCallDataList[index].useFn ? 'function' : 'undefined',
+                    );
+                    if (actualTestCallback)
+                    {
+                        testCallbackSpy.resetHistory();
+                        const expectedThis = { };
+                        actualTestCallback.call(expectedThis, ...extraArgs);
+                        deepStrictEqual(testCallbackSpy.lastCall.thisValue, expectedThis);
+                        deepStrictEqual
+                        (
+                            testCallbackSpy.lastCall.args,
+                            [...expectedParamsList[index], ...extraArgs],
+                        );
+                    }
                 },
             );
 
@@ -157,9 +179,9 @@ describe
             (actualItReturnValue, spyCalls.map(({ returnValue }: SinonSpyCall) => returnValue));
         }
 
-        let bddIt:      SinonStub;
-        let bddItOnly:  SinonStub;
-        let bddItSkip:  SinonStub;
+        let bddIt:      BDDCallData;
+        let bddItOnly:  BDDCallData;
+        let bddItSkip:  BDDCallData;
         let ebdd:       EBDDGlobals;
 
         beforeEach
@@ -169,7 +191,6 @@ describe
                 interface BDDIt extends SinonStub
                 {
                     only: SinonStub;
-                    skip: SinonStub;
                 }
 
                 function newTest(): Test
@@ -179,9 +200,11 @@ describe
                 }
 
                 const sandbox = createSandbox();
-                const it = bddIt = sandbox.stub().callsFake(newTest) as BDDIt;
-                bddItOnly = it.only = sandbox.stub().callsFake(newTest);
-                bddItSkip = it.skip = sandbox.stub().callsFake(newTest);
+                const it = sandbox.stub().callsFake(newTest) as BDDIt;
+                bddIt = { it, useFn: true };
+                bddItSkip = { it, useFn: false };
+                it.only = sandbox.stub().callsFake(newTest);
+                bddItOnly = { it: it.only, useFn: true };
                 const context = { it } as unknown as EBDDGlobals;
                 createInterface(context);
                 ebdd = context;
@@ -238,9 +261,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.only.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddItAny = [bddItOnly, bddItOnly, bddItSkip];
+                const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -280,9 +303,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.skip.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddItAny = [bddItSkip, bddItSkip, bddItSkip];
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -322,9 +345,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.if(true).per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddItAny = [bddIt, bddItOnly, bddItSkip];
+                const bddCallDataList = [bddIt, bddItOnly, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -364,9 +387,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.if(false).per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddItAny = [bddItSkip, bddItSkip, bddItSkip];
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -376,9 +399,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).only;
-                const bddItAny = [bddItOnly, bddItOnly, bddItSkip];
+                const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -388,9 +411,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).skip;
-                const bddItAny = [bddItSkip, bddItSkip, bddItSkip];
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -400,9 +423,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).if(true);
-                const bddItAny = [bddIt, bddItOnly, bddItSkip];
+                const bddCallDataList = [bddIt, bddItOnly, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -412,9 +435,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).if(false);
-                const bddItAny = [bddItSkip, bddItSkip, bddItSkip];
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
@@ -428,7 +451,7 @@ describe
                 .per({ 0: 3, 1: ebdd.only(7), 2: ebdd.skip(11), length: 3 })
                 .per(['potatoes', ebdd.only('tomatoes'), ebdd.skip('pizzas')]);
 
-                const bddItAny =
+                const bddCallDataList =
                 [
                     bddIt,
                     bddItOnly,
@@ -461,7 +484,7 @@ describe
                 assertBDDItsWithParams
                 (
                     ebddItAny,
-                    bddItAny,
+                    bddCallDataList,
                     '#1 #2',
                     testCallback,
                     ([count, food]: readonly unknown[]) => `${count} ${food}`,
@@ -513,9 +536,9 @@ describe
             () =>
             {
                 const ebddItAny = ebdd.xit.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddItAny = [bddItSkip, bddItSkip, bddItSkip];
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
 
-                assertBDDIts(ebddItAny, bddItAny);
+                assertBDDIts(ebddItAny, bddCallDataList);
             },
         );
 
