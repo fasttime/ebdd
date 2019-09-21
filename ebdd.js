@@ -1,4 +1,4 @@
-// EBDD 0.1.0 – https://github.com/fasttime/EBDD
+// EBDD 0.2.0 – https://github.com/fasttime/EBDD
 
 'use strict';
 
