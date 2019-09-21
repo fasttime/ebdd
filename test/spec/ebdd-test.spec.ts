@@ -1,5 +1,12 @@
 import
-{ EBDDGlobals, ParamInfo, ParameterizedTestFunction, UnparameterizedTestFunction, createInterface }
+{
+    EBDDGlobals,
+    ParamArrayLike,
+    ParamInfo,
+    ParameterizedTestFunction,
+    UnparameterizedTestFunction,
+    createInterface,
+}
 from '../../src/mocha-interface';
 import { deepStrictEqual, ok, strictEqual, throws }     from 'assert';
 import { Done, Test }                                   from 'mocha';
@@ -60,7 +67,7 @@ describe
                     '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
-                    [['A'], ['B'], ['C']],
+                    [['A'], ['B'], ['C'], ['D'], ['E']],
                     [],
                 );
             }
@@ -78,7 +85,7 @@ describe
                     '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
-                    [['A'], ['B'], ['C']],
+                    [['A'], ['B'], ['C'], ['D'], ['E']],
                     [done],
                 );
             }
@@ -179,6 +186,19 @@ describe
             (actualItReturnValue, spyCalls.map(({ returnValue }: SinonSpyCall) => returnValue));
         }
 
+        function getTestParams(): ParamArrayLike<string>
+        {
+            const params =
+            [
+                'A',
+                ebdd.only('B'),
+                ebdd.skip('C'),
+                ebdd.testIf(true, 'D'),
+                ebdd.testIf(false, 'E'),
+            ];
+            return params;
+        }
+
         let bddIt:      BDDCallData;
         let bddItOnly:  BDDCallData;
         let bddItSkip:  BDDCallData;
@@ -260,8 +280,8 @@ describe
             'it.only.per([...])',
             () =>
             {
-                const ebddItAny = ebdd.it.only.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip];
+                const ebddItAny = ebdd.it.only.per(getTestParams());
+                const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip, bddItOnly, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -302,8 +322,8 @@ describe
             'it.skip.per([...])',
             () =>
             {
-                const ebddItAny = ebdd.it.skip.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
+                const ebddItAny = ebdd.it.skip.per(getTestParams());
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -344,8 +364,8 @@ describe
             'it.if(true).per([...])',
             () =>
             {
-                const ebddItAny = ebdd.it.if(true).per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddCallDataList = [bddIt, bddItOnly, bddItSkip];
+                const ebddItAny = ebdd.it.if(true).per(getTestParams());
+                const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -386,8 +406,8 @@ describe
             'it.if(false).per([...])',
             () =>
             {
-                const ebddItAny = ebdd.it.if(false).per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
+                const ebddItAny = ebdd.it.if(false).per(getTestParams());
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -398,8 +418,8 @@ describe
             'it.per([...]).only',
             () =>
             {
-                const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).only;
-                const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip];
+                const ebddItAny = ebdd.it.per(getTestParams()).only;
+                const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip, bddItOnly, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -410,8 +430,8 @@ describe
             'it.per([...]).skip',
             () =>
             {
-                const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).skip;
-                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
+                const ebddItAny = ebdd.it.per(getTestParams()).skip;
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -422,8 +442,8 @@ describe
             'it.per([...]).if(true)',
             () =>
             {
-                const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).if(true);
-                const bddCallDataList = [bddIt, bddItOnly, bddItSkip];
+                const ebddItAny = ebdd.it.per(getTestParams()).if(true);
+                const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -434,8 +454,8 @@ describe
             'it.per([...]).if(false)',
             () =>
             {
-                const ebddItAny = ebdd.it.per(['A', ebdd.only('B'), ebdd.skip('C')]).if(false);
-                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
+                const ebddItAny = ebdd.it.per(getTestParams()).if(false);
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },
@@ -535,8 +555,8 @@ describe
             'xit.per([...])',
             () =>
             {
-                const ebddItAny = ebdd.xit.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip];
+                const ebddItAny = ebdd.xit.per(getTestParams());
+                const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
             },

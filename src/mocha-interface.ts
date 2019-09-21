@@ -40,6 +40,7 @@ export interface EBDDGlobals
     run:        () => void;
     skip:       <ParamType>(param: ParamType) => ParamInfo<ParamType>;
     specify:    UnparameterizedTestFunction;
+    testIf:     <ParamType>(condition: boolean, param: ParamType) => ParamInfo<ParamType>;
     xcontext:   UnparameterizedSuiteFunction;
     xdescribe:  UnparameterizedSuiteFunction;
     xit:        UnparameterizedTestFunction;
@@ -53,7 +54,7 @@ export interface MochaConstructor
 
 enum Mode { NORMAL, ONLY, SKIP }
 
-type ParamArrayLike<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;
+export type ParamArrayLike<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;
 
 type ParamList<ParamListType extends readonly unknown[]> = ParamListType & { readonly mode: Mode; };
 
@@ -117,7 +118,7 @@ export class ParamInfo<ParamType>
         if (param instanceof ParamInfo)
         {
             const message =
-            'Invalid parameter. skip(...) and only(...) expressions cannot be nested.';
+            'Invalid parameter. skip(...), only(...) and testIf(...) expressions cannot be nested.';
             throw TypeError(message);
         }
     }
@@ -400,6 +401,9 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
     <ParamType>(param: ParamType): ParamInfo<ParamType> => new ParamInfo(param, Mode.ONLY);
     (context as EBDDGlobals).skip =
     <ParamType>(param: ParamType): ParamInfo<ParamType> => new ParamInfo(param, Mode.SKIP);
+    (context as EBDDGlobals).testIf =
+    <ParamType>(condition: boolean, param: ParamType): ParamInfo<ParamType> =>
+    new ParamInfo(param, condition ? Mode.NORMAL : Mode.SKIP);
 }
 
 function createParamLists

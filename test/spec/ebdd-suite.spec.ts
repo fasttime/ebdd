@@ -1,6 +1,7 @@
 import
 {
     EBDDGlobals,
+    ParamArrayLike,
     ParamInfo,
     ParameterizedSuiteFunction,
     UnparameterizedSuiteFunction,
@@ -46,7 +47,7 @@ describe
                 '"#" is good',
                 suiteCallback,
                 ([letter]: readonly unknown[]) => `"${letter}" is good`,
-                [['A'], ['B'], ['C']],
+                [['A'], ['B'], ['C'], ['D'], ['E']],
             );
         }
 
@@ -134,6 +135,19 @@ describe
             );
         }
 
+        function getTestParams(): ParamArrayLike<string>
+        {
+            const params =
+            [
+                'A',
+                ebdd.only('B'),
+                ebdd.skip('C'),
+                ebdd.testIf(true, 'D'),
+                ebdd.testIf(false, 'E'),
+            ];
+            return params;
+        }
+
         let bddDescribe:        SinonStub;
         let bddDescribeOnly:    SinonStub;
         let bddDescribeSkip:    SinonStub;
@@ -214,9 +228,15 @@ describe
             'describe.only.per([...])',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.only.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddDescribeAny = [bddDescribeOnly, bddDescribeOnly, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.only.per(getTestParams());
+                const bddDescribeAny =
+                [
+                    bddDescribeOnly,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                ];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -257,9 +277,15 @@ describe
             'describe.skip.per([...])',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.skip.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddDescribeAny = [bddDescribeSkip, bddDescribeSkip, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.skip.per(getTestParams());
+                const bddDescribeAny =
+                [
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                ];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -300,9 +326,9 @@ describe
             'describe.if(true).per([...])',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.if(true).per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddDescribeAny = [bddDescribe, bddDescribeOnly, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.if(true).per(getTestParams());
+                const bddDescribeAny =
+                [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -343,9 +369,15 @@ describe
             'describe.if(false).per([...])',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.if(false).per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddDescribeAny = [bddDescribeSkip, bddDescribeSkip, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.if(false).per(getTestParams());
+                const bddDescribeAny =
+                [
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                ];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -356,9 +388,15 @@ describe
             'describe.per([...]).only',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.per(['A', ebdd.only('B'), ebdd.skip('C')]).only;
-                const bddDescribeAny = [bddDescribeOnly, bddDescribeOnly, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.per(getTestParams()).only;
+                const bddDescribeAny =
+                [
+                    bddDescribeOnly,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                ];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -369,9 +407,15 @@ describe
             'describe.per([...]).skip',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.per(['A', ebdd.only('B'), ebdd.skip('C')]).skip;
-                const bddDescribeAny = [bddDescribeSkip, bddDescribeSkip, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.per(getTestParams()).skip;
+                const bddDescribeAny =
+                [
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                ];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -382,9 +426,9 @@ describe
             'describe.per([...]).if(true)',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.per(['A', ebdd.only('B'), ebdd.skip('C')]).if(true);
-                const bddDescribeAny = [bddDescribe, bddDescribeOnly, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.per(getTestParams()).if(true);
+                const bddDescribeAny =
+                [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -395,9 +439,15 @@ describe
             'describe.per([...]).if(false)',
             () =>
             {
-                const ebddDescribeAny =
-                ebdd.describe.per(['A', ebdd.only('B'), ebdd.skip('C')]).if(false);
-                const bddDescribeAny = [bddDescribeSkip, bddDescribeSkip, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.describe.per(getTestParams()).if(false);
+                const bddDescribeAny =
+                [
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                ];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },
@@ -496,8 +546,15 @@ describe
             'xdescribe.per([...])',
             () =>
             {
-                const ebddDescribeAny = ebdd.xdescribe.per(['A', ebdd.only('B'), ebdd.skip('C')]);
-                const bddDescribeAny = [bddDescribeSkip, bddDescribeSkip, bddDescribeSkip];
+                const ebddDescribeAny = ebdd.xdescribe.per(getTestParams());
+                const bddDescribeAny =
+                [
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                ];
 
                 assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
             },

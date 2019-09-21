@@ -150,7 +150,7 @@ var ParamInfo = /** @class */ (function () {
         this.param = param;
         this.mode = mode;
         if (param instanceof ParamInfo) {
-            var message = 'Invalid parameter. skip(...) and only(...) expressions cannot be nested.';
+            var message = 'Invalid parameter. skip(...), only(...) and testIf(...) expressions cannot be nested.';
             throw TypeError(message);
         }
     }
@@ -335,6 +335,10 @@ function createInterface(context) {
         function (param) { return new ParamInfo(param, Mode.ONLY); };
     context.skip =
         function (param) { return new ParamInfo(param, Mode.SKIP); };
+    context.testIf =
+        function (condition, param) {
+            return new ParamInfo(param, condition ? Mode.NORMAL : Mode.SKIP);
+        };
 }
 function createParamLists(params, baseMode) {
     if (params !== undefined && params !== null) {
