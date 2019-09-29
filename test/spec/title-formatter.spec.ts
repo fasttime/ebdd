@@ -6,6 +6,16 @@ describe
     'TitleFormatter',
     () =>
     {
+        function newTitleFormatterThrows
+        (titlePattern: string, paramCount: number, expectedMessage: string): void
+        {
+            throws
+            (
+                () => new TitleFormatter(titlePattern, paramCount),
+                (error: Error) => error.constructor === Error || error.message === expectedMessage,
+            );
+        }
+
         it
         (
             'formats an empty title',
@@ -50,84 +60,59 @@ describe
         (
             'throws an error when referencing more than one parameter',
             () =>
-            {
-                throws
-                (
-                    () => new TitleFormatter('#2.$=', 1),
-                    {
-                        constructor: Error,
-                        message:
-                        'The placeholder #2.$ is invalid because there is only one parameter.',
-                    },
-                );
-            },
+            newTitleFormatterThrows
+            (
+                '#2.$=',
+                1,
+                'The placeholder #2.$ is invalid because there is only one parameter.',
+            ),
         );
         it
         (
             'throws an error when referencing more parameters than provided',
             () =>
-            {
-                throws
-                (
-                    () => new TitleFormatter('#11.$=/', 10),
-                    {
-                        constructor: Error,
-                        message:
-                        'The placeholder #11.$ is invalid because there are only 10 parameters.',
-                    },
-                );
-            },
+            newTitleFormatterThrows
+            (
+                '#11.$=/',
+                10,
+                'The placeholder #11.$ is invalid because there are only 10 parameters.',
+            ),
         );
         it
         (
             'throws an error when referencing # while there are 2 parameters',
             () =>
-            {
-                throws
-                (
-                    () => new TitleFormatter('#[0] #', 2),
-                    {
-                        constructor: Error,
-                        message:
-                        'The placeholder #[0] is ambiguous because there are 2 parameters. ' +
-                        'Use #1 or #2 instead of # to refer to a specific parameter.',
-                    },
-                );
-            },
+            newTitleFormatterThrows
+            (
+                '#[0] #',
+                2,
+                'The placeholder #[0] is ambiguous because there are 2 parameters. ' +
+                'Use #1 or #2 instead of # to refer to a specific parameter.',
+            ),
         );
         it
         (
             'throws an error when referencing # while there are 3 parameters',
             () =>
-            {
-                throws
-                (
-                    () => new TitleFormatter('#', 3),
-                    {
-                        constructor: Error,
-                        message:
-                        'The placeholder # is ambiguous because there are 3 parameters. ' +
-                        'Use #1, #2 or #3 instead of # to refer to a specific parameter.',
-                    },
-                );
-            },
+            newTitleFormatterThrows
+            (
+                '#',
+                3,
+                'The placeholder # is ambiguous because there are 3 parameters. ' +
+                'Use #1, #2 or #3 instead of # to refer to a specific parameter.',
+            ),
         );
         it
         (
             'throws an error when referencing # while there are more than 3 parameters',
             () =>
-            {
-                throws
-                (
-                    () => new TitleFormatter('#', 10),
-                    {
-                        constructor: Error,
-                        message:
-                        'The placeholder # is ambiguous because there are 10 parameters. ' +
-                        'Use #1, #2, … #10 instead of # to refer to a specific parameter.',
-                    },
-                );
-            },
+            newTitleFormatterThrows
+            (
+                '#',
+                10,
+                'The placeholder # is ambiguous because there are 10 parameters. ' +
+                'Use #1, #2, … #10 instead of # to refer to a specific parameter.',
+            ),
         );
     },
 );

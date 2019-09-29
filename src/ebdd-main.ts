@@ -7,5 +7,6 @@ else if (typeof require === 'function')
     mochaConstructor = require('mocha');
 else
     throw Error('Mocha not found.');
-
-export default initEBDD(mochaConstructor);
+const ebdd = initEBDD(mochaConstructor);
+if (typeof module !== 'undefined')
+    module.exports = ebdd;

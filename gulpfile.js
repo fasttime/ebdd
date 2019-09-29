@@ -26,9 +26,8 @@ task
         lint
         (
             {
-                src: ['src/**/*.ts', 'test/**/*.ts'],
+                src: '{src,test}/**/*.ts',
                 parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
-                rules: { '@typescript-eslint/no-var-requires': 'off' },
             },
             {
                 src: 'gulpfile.js',
@@ -101,33 +100,68 @@ task
     {
         const ts = require('gulp-typescript');
 
-        const tsResult = src('src/**/*.ts').pipe(ts.createProject('tsconfig.json')());
+        const tsResult = src('{src,test}/**/*.ts').pipe(ts.createProject('tsconfig.json')());
         const stream = tsResult.js.pipe(dest('.tmp-src'));
         return stream;
     },
 );
 
-async function bundle(inputPath, outputPath)
+async function bundle(inputOptions, outputOptions)
 {
-    const { homepage, version } = require('./package.json');
-    const { rollup }            = require('rollup');
+    const { rollup } = require('rollup');
 
-    const inputOptions = { input: inputPath };
-    const bundle = await rollup(inputOptions);
-    const outputOptions =
+    inputOptions =
     {
-        banner:     `// EBDD ${version} – ${homepage}\n`,
-        esModule:   false,
-        file:       outputPath,
-        format:     'cjs',
+        ...inputOptions,
+        onwarn(warning)
+        {
+            if (warning.code !== 'THIS_IS_UNDEFINED')
+                console.error(warning.message);
+        },
     };
+    const bundle = await rollup(inputOptions);
+    outputOptions = { ...outputOptions, esModule: false, format: 'iife' };
     await bundle.write(outputOptions);
 }
 
 task
 (
-    'bundle',
-    () => bundle('.tmp-src/ebdd-main.js', 'ebdd.js'),
+    'bundle:src',
+    async () =>
+    {
+        const { homepage, version } = require('./package.json');
+
+        const inputOptions = { input: '.tmp-src/src/ebdd-main.js' };
+        const outputOptions = { banner: `// EBDD ${version} – ${homepage}\n`, file: 'ebdd.js' };
+        await bundle(inputOptions, outputOptions);
+    },
 );
 
-task('default', series(parallel('clean', 'lint'), 'test', 'compile', 'bundle'));
+task
+(
+    'bundle:test',
+    async () =>
+    {
+        const builtins      = require('rollup-plugin-node-builtins');
+        const globals       = require('rollup-plugin-node-globals');
+
+        const inputOptions =
+        {
+            external: ['mocha', 'sinon'],
+            input: '.tmp-src/test/browser-spec-runner.js',
+            plugins: [globals(), builtins()],
+        };
+        const outputOptions =
+        {
+            file:       'test/browser-spec-runner.js',
+            globals:    { assert: 'assert', mocha: 'Mocha', sinon: 'sinon' },
+        };
+        await bundle(inputOptions, outputOptions);
+    },
+);
+
+task
+(
+    'default',
+    series(parallel('clean', 'lint'), 'test', 'compile', parallel('bundle:src', 'bundle:test')),
+);
