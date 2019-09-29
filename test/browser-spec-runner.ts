@@ -1,4 +1,4 @@
-import './mocha-loader';
+import './mocha-setup';
 import './spec/ebdd-suite.spec';
 import './spec/ebdd-test.spec';
 import './spec/ebdd.spec';

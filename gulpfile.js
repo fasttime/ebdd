@@ -1,5 +1,3 @@
-/* eslint-env node */
-
 'use strict';
 
 const { dest, parallel, series, src, task } = require('gulp');
@@ -30,7 +28,11 @@ task
                 parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
             },
             {
-                src: 'gulpfile.js',
+                src: 'test/mocha-ie-adapter.js',
+            },
+            {
+                src: ['*.js', '!ebdd.js'],
+                envs: 'node',
                 parserOptions: { ecmaVersion: 10 },
             },
         );
@@ -98,9 +100,9 @@ task
     'compile',
     () =>
     {
-        const ts = require('gulp-typescript');
+        const { createProject } = require('gulp-typescript');
 
-        const tsResult = src('{src,test}/**/*.ts').pipe(ts.createProject('tsconfig.json')());
+        const tsResult = src('{src,test}/**/*.ts').pipe(createProject('tsconfig.json')());
         const stream = tsResult.js.pipe(dest('.tmp-src'));
         return stream;
     },
@@ -142,19 +144,19 @@ task
     'bundle:test',
     async () =>
     {
-        const builtins      = require('rollup-plugin-node-builtins');
-        const globals       = require('rollup-plugin-node-globals');
+        const builtins  = require('rollup-plugin-node-builtins');
+        const globals   = require('rollup-plugin-node-globals');
 
         const inputOptions =
         {
             external: ['mocha', 'sinon'],
             input: '.tmp-src/test/browser-spec-runner.js',
-            plugins: [globals(), builtins()],
+            plugins: [builtins(), globals({ buffer: false })],
         };
         const outputOptions =
         {
-            file:       'test/browser-spec-runner.js',
-            globals:    { assert: 'assert', mocha: 'Mocha', sinon: 'sinon' },
+            file: 'test/browser-spec-runner.js',
+            globals: { assert: 'assert', mocha: 'Mocha', sinon: 'sinon' },
         };
         await bundle(inputOptions, outputOptions);
     },
