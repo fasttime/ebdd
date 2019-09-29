@@ -1,6 +1,6 @@
 {
   "name": "ebdd",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Extended BDD interface for Mocha",
   "keywords": [
     "bdd",
