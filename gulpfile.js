@@ -9,7 +9,7 @@ task
     {
         const del = require('del');
 
-        await del(['.out', '.nyc_output', '.tmp-src', 'coverage']);
+        await del(['.node-test', '.nyc_output', '.tmp-src', 'coverage']);
     },
 );
 
@@ -38,32 +38,6 @@ task
         );
         return stream;
     },
-);
-
-task
-(
-    'test-no-cov',
-    series
-    (
-        callback =>
-        {
-            const { fork } = require('child_process');
-
-            const { resolve } = require;
-            const tscPath = resolve('typescript/bin/tsc');
-            const childProcess = fork(tscPath, ['--build', 'test/tsconfig.json']);
-            childProcess.on('exit', code => callback(code && 'Test compile failed'));
-        },
-        callback =>
-        {
-            const { fork } = require('child_process');
-
-            const mochaPath = require.resolve('mocha/bin/mocha');
-            const forkArgs = ['--check-leaks', '.out/test/**/*.spec.js'];
-            const childProcess = fork(mochaPath, forkArgs);
-            childProcess.on('exit', code => callback(code && 'Test failed'));
-        },
-    ),
 );
 
 task
@@ -166,4 +140,18 @@ task
 (
     'default',
     series(parallel('clean', 'lint'), 'test', 'compile', parallel('bundle:src', 'bundle:test')),
+);
+
+task
+(
+    'make-node-test',
+    callback =>
+    {
+        const { fork } = require('child_process');
+
+        const { resolve } = require;
+        const tscPath = resolve('typescript/bin/tsc');
+        const childProcess = fork(tscPath, ['--build', 'test/tsconfig.json']);
+        childProcess.on('exit', code => callback(code && 'Test compile failed'));
+    },
 );

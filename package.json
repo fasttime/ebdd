@@ -24,6 +24,7 @@
   },
   "scripts": {
     "build": "npm install && gulp",
+    "node-test": "mocha --check-leaks .node-test/test/**/*.spec.js",
     "prepublish": "node patch-sinon",
     "test": "TS_NODE_PROJECT=test/tsconfig.json mocha --require=ts-node/register --require=source-map-support/register --check-leaks test/**/*.spec.ts"
   },

@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "outDir": "../.out",
+    "outDir": "../.node-test",
     "strict": true,
     "target": "es5"
   },
   "include": [
     "../src",
-    "."
+    "spec"
   ]
 }
