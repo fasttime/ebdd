@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "outDir": "../.node-test",
+    "outDir": "../node-test",
     "strict": true,
     "target": "es5"
   },

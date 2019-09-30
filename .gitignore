@@ -2,5 +2,6 @@
 !.git*
 !/.npmrc
 /coverage
+/node-test
 /node_modules
 /npm-debug.log

@@ -9,7 +9,7 @@ task
     {
         const del = require('del');
 
-        await del(['.node-test', '.nyc_output', '.tmp-src', 'coverage']);
+        await del(['.nyc_output', '.tmp-src', 'coverage', 'node-test']);
     },
 );
 
@@ -31,9 +31,9 @@ task
                 src: 'test/mocha-ie-adapter.js',
             },
             {
-                src: ['*.js', '!ebdd.js'],
+                src: ['build/**/*.js', 'gulpfile.js'],
                 envs: 'node',
-                parserOptions: { ecmaVersion: 10 },
+                parserOptions: { ecmaVersion: 11 },
             },
         );
         return stream;
@@ -140,18 +140,4 @@ task
 (
     'default',
     series(parallel('clean', 'lint'), 'test', 'compile', parallel('bundle:src', 'bundle:test')),
-);
-
-task
-(
-    'make-node-test',
-    callback =>
-    {
-        const { fork } = require('child_process');
-
-        const { resolve } = require;
-        const tscPath = resolve('typescript/bin/tsc');
-        const childProcess = fork(tscPath, ['--build', 'test/tsconfig.json']);
-        childProcess.on('exit', code => callback(code && 'Test compile failed'));
-    },
 );
