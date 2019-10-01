@@ -9,7 +9,16 @@ task
     {
         const del = require('del');
 
-        await del(['.nyc_output', '.tmp-src', 'coverage', 'node-test']);
+        const patterns =
+        [
+            '.nyc_output',
+            '.tmp-src',
+            'coverage',
+            'ebdd.js',
+            'node-test',
+            'test/browser-spec-runner.js',
+        ];
+        await del(patterns);
     },
 );
 
@@ -28,7 +37,7 @@ task
                 parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
             },
             {
-                src: 'test/mocha-ie-adapter.js',
+                src: ['test/**/*.js', '!test/browser-spec-runner.js'],
             },
             {
                 src: ['build/**/*.js', 'gulpfile.js'],

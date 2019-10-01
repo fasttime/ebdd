@@ -17,7 +17,7 @@ async function npm()
     const { EOL }                               = require('os');
 
     await mkdir('node-test', { recursive: true });
-    const pkg = { private: true, dependencies: { mocha: '3.5.3' } };
+    const pkg = { private: true, dependencies: { mocha: '3.5.3', sinon: '2.4.1' } };
     const contents = JSON.stringify(pkg, null, 2) + EOL;
     await writeFile('node-test/package.json', contents);
     const childProcess = spawn('npm', ['install'], { cwd: 'node-test', stdio: 'inherit' });
