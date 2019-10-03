@@ -37,6 +37,9 @@ async function tsc()
 {
     try
     {
+        const del = require('del');
+
+        await del('node-test');
         await Promise.all([tsc(), npm()]);
     }
     catch (error)

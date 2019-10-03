@@ -10,14 +10,7 @@ task
         const del = require('del');
 
         const patterns =
-        [
-            '.nyc_output',
-            '.tmp-src',
-            'coverage',
-            'ebdd.js',
-            'node-test',
-            'test/browser-spec-runner.js',
-        ];
+        ['.nyc_output', '.tmp-src', 'coverage', 'ebdd.js', 'test/browser-spec-runner.js'];
         await del(patterns);
     },
 );
@@ -68,7 +61,6 @@ task
             '--',
             mochaPath,
             '--require=ts-node/register',
-            '--require=source-map-support/register',
             '--check-leaks',
             'test/**/*.spec.ts',
         ];

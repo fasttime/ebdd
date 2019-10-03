@@ -171,12 +171,10 @@ describe
                         testCallbackSpy.resetHistory();
                         const expectedThis = { };
                         actualTestCallback.call(expectedThis, ...extraArgs);
-                        deepStrictEqual(testCallbackSpy.lastCall.thisValue, expectedThis);
+                        const { lastCall } = testCallbackSpy;
+                        deepStrictEqual(lastCall.thisValue, expectedThis);
                         deepStrictEqual
-                        (
-                            testCallbackSpy.lastCall.args,
-                            [...expectedParamsList[index], ...extraArgs],
-                        );
+                        (lastCall.args, [...expectedParamsList[index], ...extraArgs]);
                     }
                 },
             );
@@ -688,7 +686,7 @@ describe
             () =>
             {
                 const paramInfo = new ParamInfo(42, 'foo' as any);
-                throws(() => ebdd.it.per([paramInfo as any]), TypeError);
+                throws(() => ebdd.it.per([paramInfo]), TypeError);
             },
         );
     },

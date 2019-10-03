@@ -1328,8 +1328,9 @@
             var fn = function () { };
             var actual = ebddDescribeAny(title, fn);
             ok(bddDescribeAny.calledOnce);
-            deepStrictEqual(bddDescribeAny.firstCall.args, [title, fn]);
-            strictEqual(actual, bddDescribeAny.firstCall.returnValue);
+            var firstCall = bddDescribeAny.firstCall;
+            deepStrictEqual(firstCall.args, [title, fn]);
+            strictEqual(actual, firstCall.returnValue);
         }
         function assertBDDDescribes(ebddDescribeAny, bddDescribeAny) {
             var suiteCallback = function (letter) { };
@@ -1372,8 +1373,9 @@
                 suiteCallbackSpy.resetHistory();
                 var expectedThis = {};
                 actualSuiteCallback.call(expectedThis);
-                deepStrictEqual(suiteCallbackSpy.lastCall.thisValue, expectedThis);
-                deepStrictEqual(suiteCallbackSpy.lastCall.args, expectedParamsList[index]);
+                var lastCall = suiteCallbackSpy.lastCall;
+                deepStrictEqual(lastCall.thisValue, expectedThis);
+                deepStrictEqual(lastCall.args, expectedParamsList[index]);
             });
             // Return value
             deepStrictEqual(actualDescribeReturnValue, spyCalls.map(function (_a) {
@@ -1678,8 +1680,9 @@
                     testCallbackSpy.resetHistory();
                     var expectedThis = {};
                     actualTestCallback.call.apply(actualTestCallback, __spreadArrays$1([expectedThis], extraArgs));
-                    deepStrictEqual(testCallbackSpy.lastCall.thisValue, expectedThis);
-                    deepStrictEqual(testCallbackSpy.lastCall.args, __spreadArrays$1(expectedParamsList[index], extraArgs));
+                    var lastCall = testCallbackSpy.lastCall;
+                    deepStrictEqual(lastCall.thisValue, expectedThis);
+                    deepStrictEqual(lastCall.args, __spreadArrays$1(expectedParamsList[index], extraArgs));
                 }
             });
             // Return value

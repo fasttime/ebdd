@@ -26,8 +26,9 @@ describe
             { };
             const actual = ebddDescribeAny(title, fn);
             ok(bddDescribeAny.calledOnce);
-            deepStrictEqual(bddDescribeAny.firstCall.args, [title, fn]);
-            strictEqual(actual, bddDescribeAny.firstCall.returnValue);
+            const { firstCall } = bddDescribeAny;
+            deepStrictEqual(firstCall.args, [title, fn]);
+            strictEqual(actual, firstCall.returnValue);
         }
 
         function assertBDDDescribes<ParamListType extends unknown[]>
@@ -122,8 +123,9 @@ describe
                     suiteCallbackSpy.resetHistory();
                     const expectedThis = { };
                     actualSuiteCallback.call(expectedThis);
-                    deepStrictEqual(suiteCallbackSpy.lastCall.thisValue, expectedThis);
-                    deepStrictEqual(suiteCallbackSpy.lastCall.args, expectedParamsList[index]);
+                    const { lastCall } = suiteCallbackSpy;
+                    deepStrictEqual(lastCall.thisValue, expectedThis);
+                    deepStrictEqual(lastCall.args, expectedParamsList[index]);
                 },
             );
 
@@ -686,7 +688,7 @@ describe
             () =>
             {
                 const paramInfo = new ParamInfo(42, 'foo' as any);
-                throws(() => ebdd.describe.per([paramInfo as any]), TypeError);
+                throws(() => ebdd.describe.per([paramInfo]), TypeError);
             },
         );
     },
