@@ -156,7 +156,7 @@
             this.param = param;
             this.mode = mode;
             if (param instanceof ParamInfo) {
-                var message = 'Invalid parameter. skip(...), only(...) and testIf(...) expressions cannot be nested.';
+                var message = 'Invalid parameter. skip(...), only(...) and when(...) expressions cannot be nested.';
                 throw TypeError(message);
             }
         }
@@ -197,15 +197,15 @@
                 });
                 return suites;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? describe : skip(brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
                     var describe = createParameterizedSuiteFunction(paramLists, brand);
                     return describe;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? describe : skip(brand);
                 };
             var describe = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
                 return createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
@@ -237,15 +237,15 @@
                 });
                 return tests;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? it : skip(brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
                     var it = createParameterizedTestFunction(paramLists, brand);
                     return it;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? it : skip(brand);
                 };
             var it = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
                 return createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
@@ -262,15 +262,15 @@
                 var suite = createSuite(title, fn);
                 return suite;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
                     var describe = createParameterizedSuiteFunction(paramLists, brand);
                     return describe;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
                 };
             var describe = makeParameterizableFunction(stub, function () {
                 return createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
@@ -289,15 +289,15 @@
                 var test = createTest(title, fn);
                 return test;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
                     var it = createParameterizedTestFunction(paramLists, brand);
                     return it;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
                 };
             var it = makeParameterizableFunction(stub, function () {
                 return createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
@@ -341,7 +341,7 @@
             function (param) { return new ParamInfo(param, Mode.ONLY); };
         context.skip =
             function (param) { return new ParamInfo(param, Mode.SKIP); };
-        context.testIf =
+        context.when =
             function (condition, param) {
                 return new ParamInfo(param, condition ? Mode.NORMAL : Mode.SKIP);
             };
@@ -1388,8 +1388,8 @@
                 'A',
                 ebdd.only('B'),
                 ebdd.skip('C'),
-                ebdd.testIf(true, 'D'),
-                ebdd.testIf(false, 'E'),
+                ebdd.when(true, 'D'),
+                ebdd.when(false, 'E'),
             ];
             return params;
         }
@@ -1418,8 +1418,8 @@
         it('describe.only', function () { return assertBDDDescribe(ebdd.describe.only, bddDescribeOnly); });
         it('describe.only.only', function () { return throws(function () { return void ebdd.describe.only.only; }, Error); });
         it('describe.only.skip', function () { return throws(function () { return void ebdd.describe.only.skip; }, Error); });
-        it('describe.only.if(true)', function () { return assertBDDDescribe(ebdd.describe.only.if(true), bddDescribeOnly); });
-        it('describe.only.if(false)', function () { return assertBDDDescribe(ebdd.describe.only.if(false), bddDescribeSkip); });
+        it('describe.only.when(true)', function () { return assertBDDDescribe(ebdd.describe.only.when(true), bddDescribeOnly); });
+        it('describe.only.when(false)', function () { return assertBDDDescribe(ebdd.describe.only.when(false), bddDescribeSkip); });
         it('describe.only.per([...])', function () {
             var ebddDescribeAny = ebdd.describe.only.per(getTestParams());
             var bddDescribeAny = [
@@ -1434,8 +1434,8 @@
         it('describe.skip', function () { return assertBDDDescribe(ebdd.describe.skip, bddDescribeSkip); });
         it('describe.skip.only', function () { return throws(function () { return void ebdd.describe.skip.only; }, Error); });
         it('describe.skip.skip', function () { return throws(function () { return void ebdd.describe.skip.skip; }, Error); });
-        it('describe.skip.if(true)', function () { return assertBDDDescribe(ebdd.describe.skip.if(true), bddDescribeSkip); });
-        it('describe.skip.if(false)', function () { return assertBDDDescribe(ebdd.describe.skip.if(false), bddDescribeSkip); });
+        it('describe.skip.when(true)', function () { return assertBDDDescribe(ebdd.describe.skip.when(true), bddDescribeSkip); });
+        it('describe.skip.when(false)', function () { return assertBDDDescribe(ebdd.describe.skip.when(false), bddDescribeSkip); });
         it('describe.skip.per([...])', function () {
             var ebddDescribeAny = ebdd.describe.skip.per(getTestParams());
             var bddDescribeAny = [
@@ -1447,23 +1447,23 @@
             ];
             assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
         });
-        it('describe.if(true)', function () { return assertBDDDescribe(ebdd.describe.if(true), bddDescribe); });
-        it('describe.if(true).only', function () { return assertBDDDescribe(ebdd.describe.if(true).only, bddDescribeOnly); });
-        it('describe.if(true).skip', function () { return assertBDDDescribe(ebdd.describe.if(true).skip, bddDescribeSkip); });
-        it('describe.if(true).if(true)', function () { return assertBDDDescribe(ebdd.describe.if(true).if(true), bddDescribe); });
-        it('describe.if(true).if(false)', function () { return assertBDDDescribe(ebdd.describe.if(true).if(false), bddDescribeSkip); });
-        it('describe.if(true).per([...])', function () {
-            var ebddDescribeAny = ebdd.describe.if(true).per(getTestParams());
+        it('describe.when(true)', function () { return assertBDDDescribe(ebdd.describe.when(true), bddDescribe); });
+        it('describe.when(true).only', function () { return assertBDDDescribe(ebdd.describe.when(true).only, bddDescribeOnly); });
+        it('describe.when(true).skip', function () { return assertBDDDescribe(ebdd.describe.when(true).skip, bddDescribeSkip); });
+        it('describe.when(true).when(true)', function () { return assertBDDDescribe(ebdd.describe.when(true).when(true), bddDescribe); });
+        it('describe.when(true).when(false)', function () { return assertBDDDescribe(ebdd.describe.when(true).when(false), bddDescribeSkip); });
+        it('describe.when(true).per([...])', function () {
+            var ebddDescribeAny = ebdd.describe.when(true).per(getTestParams());
             var bddDescribeAny = [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
             assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
         });
-        it('describe.if(false)', function () { return assertBDDDescribe(ebdd.describe.if(false), bddDescribeSkip); });
-        it('describe.if(false).only', function () { return assertBDDDescribe(ebdd.describe.if(false).only, bddDescribeSkip); });
-        it('describe.if(false).skip', function () { return assertBDDDescribe(ebdd.describe.if(false).skip, bddDescribeSkip); });
-        it('describe.if(false).if(true)', function () { return assertBDDDescribe(ebdd.describe.if(false).if(true), bddDescribeSkip); });
-        it('describe.if(false).if(false)', function () { return assertBDDDescribe(ebdd.describe.if(false).if(false), bddDescribeSkip); });
-        it('describe.if(false).per([...])', function () {
-            var ebddDescribeAny = ebdd.describe.if(false).per(getTestParams());
+        it('describe.when(false)', function () { return assertBDDDescribe(ebdd.describe.when(false), bddDescribeSkip); });
+        it('describe.when(false).only', function () { return assertBDDDescribe(ebdd.describe.when(false).only, bddDescribeSkip); });
+        it('describe.when(false).skip', function () { return assertBDDDescribe(ebdd.describe.when(false).skip, bddDescribeSkip); });
+        it('describe.when(false).when(true)', function () { return assertBDDDescribe(ebdd.describe.when(false).when(true), bddDescribeSkip); });
+        it('describe.when(false).when(false)', function () { return assertBDDDescribe(ebdd.describe.when(false).when(false), bddDescribeSkip); });
+        it('describe.when(false).per([...])', function () {
+            var ebddDescribeAny = ebdd.describe.when(false).per(getTestParams());
             var bddDescribeAny = [
                 bddDescribeSkip,
                 bddDescribeSkip,
@@ -1495,13 +1495,13 @@
             ];
             assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
         });
-        it('describe.per([...]).if(true)', function () {
-            var ebddDescribeAny = ebdd.describe.per(getTestParams()).if(true);
+        it('describe.per([...]).when(true)', function () {
+            var ebddDescribeAny = ebdd.describe.per(getTestParams()).when(true);
             var bddDescribeAny = [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
             assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
         });
-        it('describe.per([...]).if(false)', function () {
-            var ebddDescribeAny = ebdd.describe.per(getTestParams()).if(false);
+        it('describe.per([...]).when(false)', function () {
+            var ebddDescribeAny = ebdd.describe.per(getTestParams()).when(false);
             var bddDescribeAny = [
                 bddDescribeSkip,
                 bddDescribeSkip,
@@ -1547,8 +1547,8 @@
         it('xdescribe', function () { return assertBDDDescribe(ebdd.xdescribe, bddDescribeSkip); });
         it('xdescribe.only', function () { return throws(function () { return void ebdd.xdescribe.only; }, Error); });
         it('xdescribe.skip', function () { return throws(function () { return void ebdd.xdescribe.skip; }, Error); });
-        it('xdescribe.if(true)', function () { return assertBDDDescribe(ebdd.xdescribe.if(true), bddDescribeSkip); });
-        it('xdescribe.if(false)', function () { return assertBDDDescribe(ebdd.xdescribe.if(false), bddDescribeSkip); });
+        it('xdescribe.when(true)', function () { return assertBDDDescribe(ebdd.xdescribe.when(true), bddDescribeSkip); });
+        it('xdescribe.when(false)', function () { return assertBDDDescribe(ebdd.xdescribe.when(false), bddDescribeSkip); });
         it('xdescribe.per([...])', function () {
             var ebddDescribeAny = ebdd.xdescribe.per(getTestParams());
             var bddDescribeAny = [
@@ -1696,8 +1696,8 @@
                 'A',
                 ebdd.only('B'),
                 ebdd.skip('C'),
-                ebdd.testIf(true, 'D'),
-                ebdd.testIf(false, 'E'),
+                ebdd.when(true, 'D'),
+                ebdd.when(false, 'E'),
             ];
             return params;
         }
@@ -1728,8 +1728,8 @@
         it('it.only', function () { return assertBDDIt(ebdd.it.only, bddItOnly); });
         it('it.only.only', function () { return throws(function () { return void ebdd.it.only.only; }, Error); });
         it('it.only.skip', function () { return throws(function () { return void ebdd.it.only.skip; }, Error); });
-        it('it.only.if(true)', function () { return assertBDDIt(ebdd.it.only.if(true), bddItOnly); });
-        it('it.only.if(false)', function () { return assertBDDIt(ebdd.it.only.if(false), bddItSkip); });
+        it('it.only.when(true)', function () { return assertBDDIt(ebdd.it.only.when(true), bddItOnly); });
+        it('it.only.when(false)', function () { return assertBDDIt(ebdd.it.only.when(false), bddItSkip); });
         it('it.only.per([...])', function () {
             var ebddItAny = ebdd.it.only.per(getTestParams());
             var bddCallDataList = [bddItOnly, bddItOnly, bddItSkip, bddItOnly, bddItSkip];
@@ -1738,30 +1738,30 @@
         it('it.skip', function () { return assertBDDIt(ebdd.it.skip, bddItSkip); });
         it('it.skip.only', function () { return throws(function () { return void ebdd.it.skip.only; }, Error); });
         it('it.skip.skip', function () { return throws(function () { return void ebdd.it.skip.skip; }, Error); });
-        it('it.skip.if(true)', function () { return assertBDDIt(ebdd.it.skip.if(true), bddItSkip); });
-        it('it.skip.if(false)', function () { return assertBDDIt(ebdd.it.skip.if(false), bddItSkip); });
+        it('it.skip.when(true)', function () { return assertBDDIt(ebdd.it.skip.when(true), bddItSkip); });
+        it('it.skip.when(false)', function () { return assertBDDIt(ebdd.it.skip.when(false), bddItSkip); });
         it('it.skip.per([...])', function () {
             var ebddItAny = ebdd.it.skip.per(getTestParams());
             var bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
             assertBDDIts(ebddItAny, bddCallDataList);
         });
-        it('it.if(true)', function () { return assertBDDIt(ebdd.it.if(true), bddIt); });
-        it('it.if(true).only', function () { return assertBDDIt(ebdd.it.if(true).only, bddItOnly); });
-        it('it.if(true).skip', function () { return assertBDDIt(ebdd.it.if(true).skip, bddItSkip); });
-        it('it.if(true).if(true)', function () { return assertBDDIt(ebdd.it.if(true).if(true), bddIt); });
-        it('it.if(true).if(false)', function () { return assertBDDIt(ebdd.it.if(true).if(false), bddItSkip); });
-        it('it.if(true).per([...])', function () {
-            var ebddItAny = ebdd.it.if(true).per(getTestParams());
+        it('it.when(true)', function () { return assertBDDIt(ebdd.it.when(true), bddIt); });
+        it('it.when(true).only', function () { return assertBDDIt(ebdd.it.when(true).only, bddItOnly); });
+        it('it.when(true).skip', function () { return assertBDDIt(ebdd.it.when(true).skip, bddItSkip); });
+        it('it.when(true).when(true)', function () { return assertBDDIt(ebdd.it.when(true).when(true), bddIt); });
+        it('it.when(true).when(false)', function () { return assertBDDIt(ebdd.it.when(true).when(false), bddItSkip); });
+        it('it.when(true).per([...])', function () {
+            var ebddItAny = ebdd.it.when(true).per(getTestParams());
             var bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
             assertBDDIts(ebddItAny, bddCallDataList);
         });
-        it('it.if(false)', function () { return assertBDDIt(ebdd.it.if(false), bddItSkip); });
-        it('it.if(false).only', function () { return assertBDDIt(ebdd.it.if(false).only, bddItSkip); });
-        it('it.if(false).skip', function () { return assertBDDIt(ebdd.it.if(false).skip, bddItSkip); });
-        it('it.if(false).if(true)', function () { return assertBDDIt(ebdd.it.if(false).if(true), bddItSkip); });
-        it('it.if(false).if(false)', function () { return assertBDDIt(ebdd.it.if(false).if(false), bddItSkip); });
-        it('it.if(false).per([...])', function () {
-            var ebddItAny = ebdd.it.if(false).per(getTestParams());
+        it('it.when(false)', function () { return assertBDDIt(ebdd.it.when(false), bddItSkip); });
+        it('it.when(false).only', function () { return assertBDDIt(ebdd.it.when(false).only, bddItSkip); });
+        it('it.when(false).skip', function () { return assertBDDIt(ebdd.it.when(false).skip, bddItSkip); });
+        it('it.when(false).when(true)', function () { return assertBDDIt(ebdd.it.when(false).when(true), bddItSkip); });
+        it('it.when(false).when(false)', function () { return assertBDDIt(ebdd.it.when(false).when(false), bddItSkip); });
+        it('it.when(false).per([...])', function () {
+            var ebddItAny = ebdd.it.when(false).per(getTestParams());
             var bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
             assertBDDIts(ebddItAny, bddCallDataList);
         });
@@ -1775,13 +1775,13 @@
             var bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
             assertBDDIts(ebddItAny, bddCallDataList);
         });
-        it('it.per([...]).if(true)', function () {
-            var ebddItAny = ebdd.it.per(getTestParams()).if(true);
+        it('it.per([...]).when(true)', function () {
+            var ebddItAny = ebdd.it.per(getTestParams()).when(true);
             var bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
             assertBDDIts(ebddItAny, bddCallDataList);
         });
-        it('it.per([...]).if(false)', function () {
-            var ebddItAny = ebdd.it.per(getTestParams()).if(false);
+        it('it.per([...]).when(false)', function () {
+            var ebddItAny = ebdd.it.per(getTestParams()).when(false);
             var bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
             assertBDDIts(ebddItAny, bddCallDataList);
         });
@@ -1821,8 +1821,8 @@
         it('xit', function () { return assertBDDIt(ebdd.xit, bddItSkip); });
         it('xit.only', function () { return throws(function () { return void ebdd.xit.only; }, Error); });
         it('xit.skip', function () { return throws(function () { return void ebdd.xit.skip; }, Error); });
-        it('xit.if(true)', function () { return assertBDDIt(ebdd.xit.if(true), bddItSkip); });
-        it('xit.if(false)', function () { return assertBDDIt(ebdd.xit.if(false), bddItSkip); });
+        it('xit.when(true)', function () { return assertBDDIt(ebdd.xit.when(true), bddItSkip); });
+        it('xit.when(false)', function () { return assertBDDIt(ebdd.xit.when(false), bddItSkip); });
         it('xit.per([...])', function () {
             var ebddItAny = ebdd.xit.per(getTestParams());
             var bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
@@ -1880,10 +1880,10 @@
         });
     });
 
-    describe('skip & only', function () {
+    describe('skip, only and when', function () {
         var only;
         var skip;
-        var testIf;
+        var when;
         beforeEach(function () {
             var ebdd = {};
             createInterface(ebdd);
@@ -1895,20 +1895,20 @@
         });
         it('skip(skip(...))', function () { return throws(function () { return skip(skip({})); }); });
         it('skip(only(...))', function () { return throws(function () { return skip(only({})); }); });
-        it('skip(testIf(true, ...))', function () { return throws(function () { return skip(testIf()); }); });
-        it('skip(testIf(false, ...))', function () { return throws(function () { return skip(testIf()); }); });
+        it('skip(when(true, ...))', function () { return throws(function () { return skip(when()); }); });
+        it('skip(when(false, ...))', function () { return throws(function () { return skip(when()); }); });
         it('only(skip(...))', function () { return throws(function () { return only(skip({})); }); });
         it('only(only(...))', function () { return throws(function () { return only(only({})); }); });
-        it('only(testIf(true, ...))', function () { return throws(function () { return only(testIf()); }); });
-        it('only(testIf(false, ...))', function () { return throws(function () { return only(testIf()); }); });
-        it('testIf(true, skip(...))', function () { return throws(function () { return testIf(); }); });
-        it('testIf(true, only(...))', function () { return throws(function () { return testIf(); }); });
-        it('testIf(true, testIf(true, ...))', function () { return throws(function () { return testIf(); }); });
-        it('testIf(true, testIf(false, ...))', function () { return throws(function () { return testIf(); }); });
-        it('testIf(false, skip(...))', function () { return throws(function () { return testIf(); }); });
-        it('testIf(false, only(...))', function () { return throws(function () { return testIf(); }); });
-        it('testIf(false, testIf(true, ...))', function () { return throws(function () { return testIf(); }); });
-        it('testIf(false, testIf(false, ...))', function () { return throws(function () { return testIf(); }); });
+        it('only(when(true, ...))', function () { return throws(function () { return only(when()); }); });
+        it('only(when(false, ...))', function () { return throws(function () { return only(when()); }); });
+        it('when(true, skip(...))', function () { return throws(function () { return when(); }); });
+        it('when(true, only(...))', function () { return throws(function () { return when(); }); });
+        it('when(true, when(true, ...))', function () { return throws(function () { return when(); }); });
+        it('when(true, when(false, ...))', function () { return throws(function () { return when(); }); });
+        it('when(false, skip(...))', function () { return throws(function () { return when(); }); });
+        it('when(false, only(...))', function () { return throws(function () { return when(); }); });
+        it('when(false, when(true, ...))', function () { return throws(function () { return when(); }); });
+        it('when(false, when(false, ...))', function () { return throws(function () { return when(); }); });
     });
 
     describe('TitleFormatter', function () {

@@ -77,7 +77,7 @@ describe
                 (bddDescribeAny: CallCountingStub): SinonSpyCall =>
                 {
                     if (uniqueBDDDescribeAny.indexOf(bddDescribeAny) < 0)
-                    uniqueBDDDescribeAny.push(bddDescribeAny);
+                        uniqueBDDDescribeAny.push(bddDescribeAny);
                     const nextCallIndex = bddDescribeAny.nextCallIndex || 0;
                     bddDescribeAny.nextCallIndex = nextCallIndex + 1;
                     const spyCall = bddDescribeAny.getCall(nextCallIndex);
@@ -144,8 +144,8 @@ describe
                 'A',
                 ebdd.only('B'),
                 ebdd.skip('C'),
-                ebdd.testIf(true, 'D'),
-                ebdd.testIf(false, 'E'),
+                ebdd.when(true, 'D'),
+                ebdd.when(false, 'E'),
             ];
             return params;
         }
@@ -215,14 +215,14 @@ describe
 
         it
         (
-            'describe.only.if(true)',
-            () => assertBDDDescribe(ebdd.describe.only.if(true), bddDescribeOnly),
+            'describe.only.when(true)',
+            () => assertBDDDescribe(ebdd.describe.only.when(true), bddDescribeOnly),
         );
 
         it
         (
-            'describe.only.if(false)',
-            () => assertBDDDescribe(ebdd.describe.only.if(false), bddDescribeSkip),
+            'describe.only.when(false)',
+            () => assertBDDDescribe(ebdd.describe.only.when(false), bddDescribeSkip),
         );
 
         it
@@ -264,14 +264,14 @@ describe
 
         it
         (
-            'describe.skip.if(true)',
-            () => assertBDDDescribe(ebdd.describe.skip.if(true), bddDescribeSkip),
+            'describe.skip.when(true)',
+            () => assertBDDDescribe(ebdd.describe.skip.when(true), bddDescribeSkip),
         );
 
         it
         (
-            'describe.skip.if(false)',
-            () => assertBDDDescribe(ebdd.describe.skip.if(false), bddDescribeSkip),
+            'describe.skip.when(false)',
+            () => assertBDDDescribe(ebdd.describe.skip.when(false), bddDescribeSkip),
         );
 
         it
@@ -295,40 +295,40 @@ describe
 
         it
         (
-            'describe.if(true)',
-            () => assertBDDDescribe(ebdd.describe.if(true), bddDescribe),
+            'describe.when(true)',
+            () => assertBDDDescribe(ebdd.describe.when(true), bddDescribe),
         );
 
         it
         (
-            'describe.if(true).only',
-            () => assertBDDDescribe(ebdd.describe.if(true).only, bddDescribeOnly),
+            'describe.when(true).only',
+            () => assertBDDDescribe(ebdd.describe.when(true).only, bddDescribeOnly),
         );
 
         it
         (
-            'describe.if(true).skip',
-            () => assertBDDDescribe(ebdd.describe.if(true).skip, bddDescribeSkip),
+            'describe.when(true).skip',
+            () => assertBDDDescribe(ebdd.describe.when(true).skip, bddDescribeSkip),
         );
 
         it
         (
-            'describe.if(true).if(true)',
-            () => assertBDDDescribe(ebdd.describe.if(true).if(true), bddDescribe),
+            'describe.when(true).when(true)',
+            () => assertBDDDescribe(ebdd.describe.when(true).when(true), bddDescribe),
         );
 
         it
         (
-            'describe.if(true).if(false)',
-            () => assertBDDDescribe(ebdd.describe.if(true).if(false), bddDescribeSkip),
+            'describe.when(true).when(false)',
+            () => assertBDDDescribe(ebdd.describe.when(true).when(false), bddDescribeSkip),
         );
 
         it
         (
-            'describe.if(true).per([...])',
+            'describe.when(true).per([...])',
             () =>
             {
-                const ebddDescribeAny = ebdd.describe.if(true).per(getTestParams());
+                const ebddDescribeAny = ebdd.describe.when(true).per(getTestParams());
                 const bddDescribeAny =
                 [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
 
@@ -338,40 +338,40 @@ describe
 
         it
         (
-            'describe.if(false)',
-            () => assertBDDDescribe(ebdd.describe.if(false), bddDescribeSkip),
+            'describe.when(false)',
+            () => assertBDDDescribe(ebdd.describe.when(false), bddDescribeSkip),
         );
 
         it
         (
-            'describe.if(false).only',
-            () => assertBDDDescribe(ebdd.describe.if(false).only, bddDescribeSkip),
+            'describe.when(false).only',
+            () => assertBDDDescribe(ebdd.describe.when(false).only, bddDescribeSkip),
         );
 
         it
         (
-            'describe.if(false).skip',
-            () => assertBDDDescribe(ebdd.describe.if(false).skip, bddDescribeSkip),
+            'describe.when(false).skip',
+            () => assertBDDDescribe(ebdd.describe.when(false).skip, bddDescribeSkip),
         );
 
         it
         (
-            'describe.if(false).if(true)',
-            () => assertBDDDescribe(ebdd.describe.if(false).if(true), bddDescribeSkip),
+            'describe.when(false).when(true)',
+            () => assertBDDDescribe(ebdd.describe.when(false).when(true), bddDescribeSkip),
         );
 
         it
         (
-            'describe.if(false).if(false)',
-            () => assertBDDDescribe(ebdd.describe.if(false).if(false), bddDescribeSkip),
+            'describe.when(false).when(false)',
+            () => assertBDDDescribe(ebdd.describe.when(false).when(false), bddDescribeSkip),
         );
 
         it
         (
-            'describe.if(false).per([...])',
+            'describe.when(false).per([...])',
             () =>
             {
-                const ebddDescribeAny = ebdd.describe.if(false).per(getTestParams());
+                const ebddDescribeAny = ebdd.describe.when(false).per(getTestParams());
                 const bddDescribeAny =
                 [
                     bddDescribeSkip,
@@ -425,10 +425,10 @@ describe
 
         it
         (
-            'describe.per([...]).if(true)',
+            'describe.per([...]).when(true)',
             () =>
             {
-                const ebddDescribeAny = ebdd.describe.per(getTestParams()).if(true);
+                const ebddDescribeAny = ebdd.describe.per(getTestParams()).when(true);
                 const bddDescribeAny =
                 [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
 
@@ -438,10 +438,10 @@ describe
 
         it
         (
-            'describe.per([...]).if(false)',
+            'describe.per([...]).when(false)',
             () =>
             {
-                const ebddDescribeAny = ebdd.describe.per(getTestParams()).if(false);
+                const ebddDescribeAny = ebdd.describe.per(getTestParams()).when(false);
                 const bddDescribeAny =
                 [
                     bddDescribeSkip,
@@ -533,14 +533,14 @@ describe
 
         it
         (
-            'xdescribe.if(true)',
-            () => assertBDDDescribe(ebdd.xdescribe.if(true), bddDescribeSkip),
+            'xdescribe.when(true)',
+            () => assertBDDDescribe(ebdd.xdescribe.when(true), bddDescribeSkip),
         );
 
         it
         (
-            'xdescribe.if(false)',
-            () => assertBDDDescribe(ebdd.xdescribe.if(false), bddDescribeSkip),
+            'xdescribe.when(false)',
+            () => assertBDDDescribe(ebdd.xdescribe.when(false), bddDescribeSkip),
         );
 
         it

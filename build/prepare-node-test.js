@@ -37,8 +37,10 @@ async function tsc()
 {
     try
     {
-        const del = require('del');
+        const del           = require('del');
+        const { dirname }   = require('path');
 
+        process.chdir(dirname(__dirname));
         await del('node-test');
         await Promise.all([tsc(), npm()]);
     }

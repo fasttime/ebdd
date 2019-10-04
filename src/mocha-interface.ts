@@ -40,7 +40,7 @@ export interface EBDDGlobals
     run:        () => void;
     skip:       <ParamType>(param: ParamType) => ParamInfo<ParamType>;
     specify:    UnparameterizedTestFunction;
-    testIf:     <ParamType>(condition: boolean, param: ParamType) => ParamInfo<ParamType>;
+    when:       <ParamType>(condition: boolean, param: ParamType) => ParamInfo<ParamType>;
     xcontext:   UnparameterizedSuiteFunction;
     xdescribe:  UnparameterizedSuiteFunction;
     xit:        UnparameterizedTestFunction;
@@ -62,10 +62,10 @@ type ParamOrParamInfo<ParamType> = ParamType | ParamInfo<ParamType>;
 
 interface ParameterizableFunction<SubType extends ParameterizableFunction<SubType>>
 {
-    readonly if:    (condition: boolean) => SubType;
     readonly only:  SubType;
     readonly per:   <ParamType>(params: ParamArrayLike<ParamType>) => unknown;
     readonly skip:  SubType;
+    readonly when:  (condition: boolean) => SubType;
 }
 
 export interface ParameterizedSuiteFunction<ParamListType extends unknown[]>
@@ -118,7 +118,7 @@ export class ParamInfo<ParamType>
         if (param instanceof ParamInfo)
         {
             const message =
-            'Invalid parameter. skip(...), only(...) and testIf(...) expressions cannot be nested.';
+            'Invalid parameter. skip(...), only(...) and when(...) expressions cannot be nested.';
             throw TypeError(message);
         }
     }
@@ -190,10 +190,6 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             return suites;
         }
 
-        stub.if =
-        (condition: boolean): ParameterizedSuiteFunction<ParamListType> =>
-        condition ? describe : skip(brand);
-
         stub.per =
         <ParamType>(params: ParamArrayLike<ParamType>):
         ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>> =>
@@ -202,6 +198,10 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             const describe = createParameterizedSuiteFunction(paramLists, brand);
             return describe;
         };
+
+        stub.when =
+        (condition: boolean): ParameterizedSuiteFunction<ParamListType> =>
+        condition ? describe : skip(brand);
 
         const describe =
         makeParameterizableFunction
@@ -260,10 +260,6 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             return tests;
         }
 
-        stub.if =
-        (condition: boolean): ParameterizedTestFunction<ParamListType> =>
-        condition ? it : skip(brand);
-
         stub.per =
         <ParamType>(params: ParamArrayLike<ParamType>):
         ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>> =>
@@ -272,6 +268,10 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             const it = createParameterizedTestFunction(paramLists, brand);
             return it;
         };
+
+        stub.when =
+        (condition: boolean): ParameterizedTestFunction<ParamListType> =>
+        condition ? it : skip(brand);
 
         const it =
         makeParameterizableFunction
@@ -297,10 +297,6 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             return suite;
         }
 
-        stub.if =
-        (condition: boolean): UnparameterizedSuiteFunction =>
-        condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
-
         stub.per =
         <ParamType>(params: ParamArrayLike<ParamType>): ParameterizedSuiteFunction<[ParamType]> =>
         {
@@ -308,6 +304,10 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             const describe = createParameterizedSuiteFunction(paramLists, brand);
             return describe;
         };
+
+        stub.when =
+        (condition: boolean): UnparameterizedSuiteFunction =>
+        condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
 
         const describe =
         makeParameterizableFunction
@@ -334,10 +334,6 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             return test;
         }
 
-        stub.if =
-        (condition: boolean): UnparameterizedTestFunction =>
-        condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
-
         stub.per =
         <ParamType>(params: ParamArrayLike<ParamType>): ParameterizedTestFunction<[ParamType]> =>
         {
@@ -345,6 +341,10 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             const it = createParameterizedTestFunction(paramLists, brand);
             return it;
         };
+
+        stub.when =
+        (condition: boolean): UnparameterizedTestFunction =>
+        condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
 
         const it =
         makeParameterizableFunction
@@ -401,7 +401,7 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
     <ParamType>(param: ParamType): ParamInfo<ParamType> => new ParamInfo(param, Mode.ONLY);
     (context as EBDDGlobals).skip =
     <ParamType>(param: ParamType): ParamInfo<ParamType> => new ParamInfo(param, Mode.SKIP);
-    (context as EBDDGlobals).testIf =
+    (context as EBDDGlobals).when =
     <ParamType>(condition: boolean, param: ParamType): ParamInfo<ParamType> =>
     new ParamInfo(param, condition ? Mode.NORMAL : Mode.SKIP);
 }

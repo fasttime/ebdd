@@ -151,7 +151,7 @@
             this.param = param;
             this.mode = mode;
             if (param instanceof ParamInfo) {
-                var message = 'Invalid parameter. skip(...), only(...) and testIf(...) expressions cannot be nested.';
+                var message = 'Invalid parameter. skip(...), only(...) and when(...) expressions cannot be nested.';
                 throw TypeError(message);
             }
         }
@@ -192,15 +192,15 @@
                 });
                 return suites;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? describe : skip(brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
                     var describe = createParameterizedSuiteFunction(paramLists, brand);
                     return describe;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? describe : skip(brand);
                 };
             var describe = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
                 return createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
@@ -232,15 +232,15 @@
                 });
                 return tests;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? it : skip(brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
                     var it = createParameterizedTestFunction(paramLists, brand);
                     return it;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? it : skip(brand);
                 };
             var it = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
                 return createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
@@ -257,15 +257,15 @@
                 var suite = createSuite(title, fn);
                 return suite;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
                     var describe = createParameterizedSuiteFunction(paramLists, brand);
                     return describe;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
                 };
             var describe = makeParameterizableFunction(stub, function () {
                 return createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
@@ -284,15 +284,15 @@
                 var test = createTest(title, fn);
                 return test;
             }
-            stub.if =
-                function (condition) {
-                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
-                };
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
                     var it = createParameterizedTestFunction(paramLists, brand);
                     return it;
+                };
+            stub.when =
+                function (condition) {
+                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
                 };
             var it = makeParameterizableFunction(stub, function () {
                 return createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
@@ -336,7 +336,7 @@
             function (param) { return new ParamInfo(param, Mode.ONLY); };
         context.skip =
             function (param) { return new ParamInfo(param, Mode.SKIP); };
-        context.testIf =
+        context.when =
             function (condition, param) {
                 return new ParamInfo(param, condition ? Mode.NORMAL : Mode.SKIP);
             };

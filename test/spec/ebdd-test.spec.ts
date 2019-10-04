@@ -191,8 +191,8 @@ describe
                 'A',
                 ebdd.only('B'),
                 ebdd.skip('C'),
-                ebdd.testIf(true, 'D'),
-                ebdd.testIf(false, 'E'),
+                ebdd.when(true, 'D'),
+                ebdd.when(false, 'E'),
             ];
             return params;
         }
@@ -263,14 +263,14 @@ describe
 
         it
         (
-            'it.only.if(true)',
-            () => assertBDDIt(ebdd.it.only.if(true), bddItOnly),
+            'it.only.when(true)',
+            () => assertBDDIt(ebdd.it.only.when(true), bddItOnly),
         );
 
         it
         (
-            'it.only.if(false)',
-            () => assertBDDIt(ebdd.it.only.if(false), bddItSkip),
+            'it.only.when(false)',
+            () => assertBDDIt(ebdd.it.only.when(false), bddItSkip),
         );
 
         it
@@ -305,14 +305,14 @@ describe
 
         it
         (
-            'it.skip.if(true)',
-            () => assertBDDIt(ebdd.it.skip.if(true), bddItSkip),
+            'it.skip.when(true)',
+            () => assertBDDIt(ebdd.it.skip.when(true), bddItSkip),
         );
 
         it
         (
-            'it.skip.if(false)',
-            () => assertBDDIt(ebdd.it.skip.if(false), bddItSkip),
+            'it.skip.when(false)',
+            () => assertBDDIt(ebdd.it.skip.when(false), bddItSkip),
         );
 
         it
@@ -329,40 +329,40 @@ describe
 
         it
         (
-            'it.if(true)',
-            () => assertBDDIt(ebdd.it.if(true), bddIt),
+            'it.when(true)',
+            () => assertBDDIt(ebdd.it.when(true), bddIt),
         );
 
         it
         (
-            'it.if(true).only',
-            () => assertBDDIt(ebdd.it.if(true).only, bddItOnly),
+            'it.when(true).only',
+            () => assertBDDIt(ebdd.it.when(true).only, bddItOnly),
         );
 
         it
         (
-            'it.if(true).skip',
-            () => assertBDDIt(ebdd.it.if(true).skip, bddItSkip),
+            'it.when(true).skip',
+            () => assertBDDIt(ebdd.it.when(true).skip, bddItSkip),
         );
 
         it
         (
-            'it.if(true).if(true)',
-            () => assertBDDIt(ebdd.it.if(true).if(true), bddIt),
+            'it.when(true).when(true)',
+            () => assertBDDIt(ebdd.it.when(true).when(true), bddIt),
         );
 
         it
         (
-            'it.if(true).if(false)',
-            () => assertBDDIt(ebdd.it.if(true).if(false), bddItSkip),
+            'it.when(true).when(false)',
+            () => assertBDDIt(ebdd.it.when(true).when(false), bddItSkip),
         );
 
         it
         (
-            'it.if(true).per([...])',
+            'it.when(true).per([...])',
             () =>
             {
-                const ebddItAny = ebdd.it.if(true).per(getTestParams());
+                const ebddItAny = ebdd.it.when(true).per(getTestParams());
                 const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
@@ -371,40 +371,40 @@ describe
 
         it
         (
-            'it.if(false)',
-            () => assertBDDIt(ebdd.it.if(false), bddItSkip),
+            'it.when(false)',
+            () => assertBDDIt(ebdd.it.when(false), bddItSkip),
         );
 
         it
         (
-            'it.if(false).only',
-            () => assertBDDIt(ebdd.it.if(false).only, bddItSkip),
+            'it.when(false).only',
+            () => assertBDDIt(ebdd.it.when(false).only, bddItSkip),
         );
 
         it
         (
-            'it.if(false).skip',
-            () => assertBDDIt(ebdd.it.if(false).skip, bddItSkip),
+            'it.when(false).skip',
+            () => assertBDDIt(ebdd.it.when(false).skip, bddItSkip),
         );
 
         it
         (
-            'it.if(false).if(true)',
-            () => assertBDDIt(ebdd.it.if(false).if(true), bddItSkip),
+            'it.when(false).when(true)',
+            () => assertBDDIt(ebdd.it.when(false).when(true), bddItSkip),
         );
 
         it
         (
-            'it.if(false).if(false)',
-            () => assertBDDIt(ebdd.it.if(false).if(false), bddItSkip),
+            'it.when(false).when(false)',
+            () => assertBDDIt(ebdd.it.when(false).when(false), bddItSkip),
         );
 
         it
         (
-            'it.if(false).per([...])',
+            'it.when(false).per([...])',
             () =>
             {
-                const ebddItAny = ebdd.it.if(false).per(getTestParams());
+                const ebddItAny = ebdd.it.when(false).per(getTestParams());
                 const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
@@ -437,10 +437,10 @@ describe
 
         it
         (
-            'it.per([...]).if(true)',
+            'it.per([...]).when(true)',
             () =>
             {
-                const ebddItAny = ebdd.it.per(getTestParams()).if(true);
+                const ebddItAny = ebdd.it.per(getTestParams()).when(true);
                 const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
@@ -449,10 +449,10 @@ describe
 
         it
         (
-            'it.per([...]).if(false)',
+            'it.per([...]).when(false)',
             () =>
             {
-                const ebddItAny = ebdd.it.per(getTestParams()).if(false);
+                const ebddItAny = ebdd.it.per(getTestParams()).when(false);
                 const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList);
@@ -538,14 +538,14 @@ describe
 
         it
         (
-            'xit.if(true)',
-            () => assertBDDIt(ebdd.xit.if(true), bddItSkip),
+            'xit.when(true)',
+            () => assertBDDIt(ebdd.xit.when(true), bddItSkip),
         );
 
         it
         (
-            'xit.if(false)',
-            () => assertBDDIt(ebdd.xit.if(false), bddItSkip),
+            'xit.when(false)',
+            () => assertBDDIt(ebdd.xit.when(false), bddItSkip),
         );
 
         it
