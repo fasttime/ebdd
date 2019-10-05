@@ -162,6 +162,30 @@
         }
         return ParamInfo;
     }());
+    var SpecItemArrayPrototype = Object.create(Array.prototype, {
+        timeout: {
+            configurable: true,
+            value: function (ms) {
+                if (arguments.length) {
+                    for (var _i = 0, _a = this; _i < _a.length; _i++) {
+                        var specItem = _a[_i];
+                        specItem.timeout(ms);
+                    }
+                    return this;
+                }
+                {
+                    var sum = 0;
+                    for (var _b = 0, _c = this; _b < _c.length; _b++) {
+                        var specItem = _c[_b];
+                        sum += specItem.timeout();
+                    }
+                    var ms_1 = sum / this.length;
+                    return ms_1;
+                }
+            },
+            writable: true,
+        },
+    });
     function bindArguments(fn, args) {
         var boundFn = function () {
             var returnValue = fn.apply(this, args);
@@ -188,13 +212,15 @@
                 var paramCount = baseParamLists[0].length;
                 validateSuiteCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
-                var suites = baseParamLists.map(function (paramList) {
+                var suites = Object.create(SpecItemArrayPrototype);
+                for (var _i = 0, baseParamLists_1 = baseParamLists; _i < baseParamLists_1.length; _i++) {
+                    var paramList = baseParamLists_1[_i];
                     var createSuite = getCreateSuite(paramList.mode);
                     var title = titleFormatter(paramList);
                     var fnWrapper = bindArguments(fn, paramList);
-                    var suite = createSuite(title, fnWrapper);
-                    return suite;
-                });
+                    var suite_1 = createSuite(title, fnWrapper);
+                    suites.push(suite_1);
+                }
                 return suites;
             }
             stub.per =
@@ -222,19 +248,21 @@
                 var paramCount = baseParamLists[0].length;
                 validateTestCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
-                var tests = baseParamLists.map(function (paramList) {
+                var tests = Object.create(SpecItemArrayPrototype);
+                for (var _i = 0, baseParamLists_2 = baseParamLists; _i < baseParamLists_2.length; _i++) {
+                    var paramList = baseParamLists_2[_i];
                     var createTest = getCreateTest(paramList.mode);
                     var title = titleFormatter(paramList);
-                    var fnWrapper;
+                    var fnWrapper = void 0;
                     if (fn.length === paramCount) {
                         fnWrapper = bindArguments(fn, paramList);
                     }
                     else {
                         fnWrapper = bindArgumentsButLast(fn, paramList);
                     }
-                    var test = createTest(title, fnWrapper);
-                    return test;
-                });
+                    var test_1 = createTest(title, fnWrapper);
+                    tests.push(test_1);
+                }
                 return tests;
             }
             stub.per =
@@ -423,8 +451,8 @@
     function multiplyParams(params, baseParamLists) {
         var newParamLists = createParamLists(params, Mode.NORMAL);
         var paramLists = [];
-        for (var _i = 0, baseParamLists_1 = baseParamLists; _i < baseParamLists_1.length; _i++) {
-            var baseParamList = baseParamLists_1[_i];
+        for (var _i = 0, baseParamLists_3 = baseParamLists; _i < baseParamLists_3.length; _i++) {
+            var baseParamList = baseParamLists_3[_i];
             var baseMode = baseParamList.mode;
             for (var _a = 0, newParamLists_1 = newParamLists; _a < newParamLists_1.length; _a++) {
                 var newParamList = newParamLists_1[_a];
@@ -488,6 +516,19 @@
             var message = 'Argument `titlePattern` is not a string.';
             throw TypeError(message);
         }
+    }
+
+    function isArrayBased(array) {
+        if (!(array instanceof Array))
+            return false;
+        var length = array.length;
+        array.push(null);
+        if (array.length !== length + 1)
+            return false;
+        array.pop();
+        if (array.length !== length)
+            return false;
+        return true;
     }
 
     var global$1 = (typeof global !== "undefined" ? global :
@@ -1322,6 +1363,13 @@
       _throws(true, block, error, message);
     }
 
+    var __spreadArrays$1 = (undefined && undefined.__spreadArrays) || function () {
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++)
+            for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+                r[k] = a[j];
+        return r;
+    };
     describe('EBDD suite functions', function () {
         function assertBDDDescribe(ebddDescribeAny, bddDescribeAny) {
             var title = '123';
@@ -1378,10 +1426,21 @@
                 deepStrictEqual(lastCall.args, expectedParamsList[index]);
             });
             // Return value
-            deepStrictEqual(actualDescribeReturnValue, spyCalls.map(function (_a) {
+            ok(isArrayBased(actualDescribeReturnValue));
+            deepStrictEqual(__spreadArrays$1(actualDescribeReturnValue), spyCalls.map(function (_a) {
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
+            // Return value timeout
+            var suiteCount = bddDescribeAny.length;
+            var expectedTimeout = (suiteCount + 1) * 500;
+            deepStrictEqual(actualDescribeReturnValue.timeout(), expectedTimeout);
+            var timeout = 42;
+            actualDescribeReturnValue.timeout(timeout);
+            for (var _i = 0, actualDescribeReturnValue_1 = actualDescribeReturnValue; _i < actualDescribeReturnValue_1.length; _i++) {
+                var suite_1 = actualDescribeReturnValue_1[_i];
+                deepStrictEqual(suite_1.timeout(), timeout);
+            }
         }
         function getTestParams() {
             var params = [
@@ -1400,8 +1459,10 @@
         beforeEach(function () {
             function newSuite() {
                 var suite = new mocha$1.Suite('abc');
+                suite.timeout(timeout += 1000);
                 return suite;
             }
+            var timeout = 0;
             var sandbox = sinon.createSandbox();
             var describe = bddDescribe = sandbox.stub().callsFake(newSuite);
             bddDescribeOnly = describe.only = sandbox.stub().callsFake(newSuite);
@@ -1598,7 +1659,7 @@
         });
     });
 
-    var __spreadArrays$1 = (undefined && undefined.__spreadArrays) || function () {
+    var __spreadArrays$2 = (undefined && undefined.__spreadArrays) || function () {
         for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
         for (var r = Array(s), k = 0, i = 0; i < il; i++)
             for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
@@ -1632,7 +1693,7 @@
                 assertBDDItsWithParams(ebddItAny, bddCallDataList, '"#" is good', testCallback, function (_a) {
                     var letter = _a[0];
                     return "\"" + letter + "\" is good";
-                }, [['A'], ['B'], ['C'], ['D'], ['E']], []);
+                }, [['A'], ['B'], ['C'], ['D'], ['E']], [], 3000);
             }
             {
                 var testCallback = function (letter, done) { };
@@ -1640,10 +1701,10 @@
                 assertBDDItsWithParams(ebddItAny, bddCallDataList, '"#" is good', testCallback, function (_a) {
                     var letter = _a[0];
                     return "\"" + letter + "\" is good";
-                }, [['A'], ['B'], ['C'], ['D'], ['E']], [done]);
+                }, [['A'], ['B'], ['C'], ['D'], ['E']], [done], 8000);
             }
         }
-        function assertBDDItsWithParams(ebddItAny, bddCallDataList, titlePattern, testCallback, getExpectedTitle, expectedParamsList, extraArgs) {
+        function assertBDDItsWithParams(ebddItAny, bddCallDataList, titlePattern, testCallback, getExpectedTitle, expectedParamsList, extraArgs, expectedTimeout) {
             var testCallbackSpy = sinon.spy(testCallback);
             var actualItReturnValue = ebddItAny(titlePattern, testCallbackSpy);
             var uniqueBDDItAny = [];
@@ -1679,17 +1740,26 @@
                 if (actualTestCallback) {
                     testCallbackSpy.resetHistory();
                     var expectedThis = {};
-                    actualTestCallback.call.apply(actualTestCallback, __spreadArrays$1([expectedThis], extraArgs));
+                    actualTestCallback.call.apply(actualTestCallback, __spreadArrays$2([expectedThis], extraArgs));
                     var lastCall = testCallbackSpy.lastCall;
                     deepStrictEqual(lastCall.thisValue, expectedThis);
-                    deepStrictEqual(lastCall.args, __spreadArrays$1(expectedParamsList[index], extraArgs));
+                    deepStrictEqual(lastCall.args, __spreadArrays$2(expectedParamsList[index], extraArgs));
                 }
             });
             // Return value
-            deepStrictEqual(actualItReturnValue, spyCalls.map(function (_a) {
+            ok(isArrayBased(actualItReturnValue));
+            deepStrictEqual(__spreadArrays$2(actualItReturnValue), spyCalls.map(function (_a) {
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
+            // Return value timeout
+            deepStrictEqual(actualItReturnValue.timeout(), expectedTimeout);
+            var timeout = 42;
+            actualItReturnValue.timeout(timeout);
+            for (var _i = 0, actualItReturnValue_1 = actualItReturnValue; _i < actualItReturnValue_1.length; _i++) {
+                var test_1 = actualItReturnValue_1[_i];
+                deepStrictEqual(test_1.timeout(), timeout);
+            }
         }
         function getTestParams() {
             var params = [
@@ -1708,8 +1778,10 @@
         beforeEach(function () {
             function newTest() {
                 var test = new mocha$1.Test('abc');
+                test.timeout(timeout += 1000);
                 return test;
             }
+            var timeout = 0;
             var sandbox = sinon.createSandbox();
             var it = sandbox.stub().callsFake(newTest);
             bddIt = { it: it, useFn: true };
@@ -1815,7 +1887,7 @@
             assertBDDItsWithParams(ebddItAny, bddCallDataList, '#1 #2', testCallback, function (_a) {
                 var count = _a[0], food = _a[1];
                 return count + " " + food;
-            }, expectedParamsList, []);
+            }, expectedParamsList, [], 5000);
         });
         it('specify', function () { return strictEqual(ebdd.specify, ebdd.it); });
         it('xit', function () { return assertBDDIt(ebdd.xit, bddItSkip); });

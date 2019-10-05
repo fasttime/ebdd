@@ -74,7 +74,7 @@ extends ParameterizableFunction<ParameterizedSuiteFunction<ParamListType>>
     readonly per:
     <ParamType>(params: ParamArrayLike<ParamType>) =>
     ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>>;
-    (titlePattern: string, fn: SuiteCallback<ParamListType>): Suite[];
+    (titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>;
 }
 
 export interface ParameterizedTestFunction<ParamListType extends unknown[]>
@@ -83,7 +83,13 @@ extends ParameterizableFunction<ParameterizedTestFunction<ParamListType>>
     readonly per:
     <ParamType>(params: ParamArrayLike<ParamType>) =>
     ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>>;
-    (titlePattern: string, fn: TestCallback<ParamListType>): Test[];
+    (titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>;
+}
+
+export interface SpecItemArray<SpecItemType extends Suite | Test> extends Array<SpecItemType>
+{
+    timeout(): number;
+    timeout(ms: string | number): this;
 }
 
 /** Callback function used for suites. */
@@ -123,6 +129,36 @@ export class ParamInfo<ParamType>
         }
     }
 }
+
+const SpecItemArrayPrototype: SpecItemArray<Suite | Test> =
+Object.create
+(
+    Array.prototype,
+    {
+        timeout:
+        {
+            configurable: true,
+            value(ms?: string | number): any
+            {
+                if (arguments.length)
+                {
+                    for (const specItem of this)
+                        specItem.timeout(ms!);
+                    return this;
+                }
+                {
+                    let sum = 0;
+                    for (const specItem of this)
+                        sum += specItem.timeout();
+                    const ms = sum / this.length;
+                    return ms;
+                }
+            },
+            writable: true,
+        } as
+        PropertyDescriptor & ThisType<(Suite | Test)[]>,
+    },
+);
 
 export function bindArguments
 <ThisType, ArgListType extends unknown[], RetType>
@@ -169,24 +205,21 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             return describe;
         }
 
-        function stub(titlePattern: string, fn: SuiteCallback<ParamListType>): Suite[]
+        function stub(titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>
         {
             validateTitlePattern(titlePattern);
             const paramCount = baseParamLists[0].length;
             validateSuiteCallback(fn, paramCount);
             const titleFormatter = new TitleFormatter(titlePattern, paramCount);
-            const suites =
-            baseParamLists.map
-            (
-                (paramList: ParamList<ParamListType>): Suite =>
-                {
-                    const createSuite = getCreateSuite(paramList.mode);
-                    const title = titleFormatter(paramList);
-                    const fnWrapper = bindArguments(fn, paramList);
-                    const suite = createSuite(title, fnWrapper);
-                    return suite;
-                },
-            );
+            const suites: SpecItemArray<Suite> = Object.create(SpecItemArrayPrototype);
+            for (const paramList of baseParamLists)
+            {
+                const createSuite = getCreateSuite(paramList.mode);
+                const title = titleFormatter(paramList);
+                const fnWrapper = bindArguments(fn, paramList);
+                const suite = createSuite(title, fnWrapper);
+                suites.push(suite);
+            }
             return suites;
         }
 
@@ -226,37 +259,33 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             return it;
         }
 
-        function stub(titlePattern: string, fn: TestCallback<ParamListType>): Test[]
+        function stub(titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>
         {
             validateTitlePattern(titlePattern);
             const paramCount = baseParamLists[0].length;
             validateTestCallback(fn, paramCount);
             const titleFormatter = new TitleFormatter(titlePattern, paramCount);
-            const tests =
-            baseParamLists.map
-            (
-                (paramList: ParamList<ParamListType>): Test =>
+            const tests: SpecItemArray<Test> = Object.create(SpecItemArrayPrototype);
+            for (const paramList of baseParamLists)
+            {
+                const createTest = getCreateTest(paramList.mode);
+                const title = titleFormatter(paramList);
+                let fnWrapper: TestCallback;
+                if (fn.length === paramCount)
                 {
-                    const createTest = getCreateTest(paramList.mode);
-                    const title = titleFormatter(paramList);
-                    let fnWrapper: TestCallback;
-                    if (fn.length === paramCount)
-                    {
-                        type TestCallbackType =
-                        (this: Context, ...params: ParamListType) => PromiseLike<any> | void;
-                        fnWrapper = bindArguments(fn as TestCallbackType, paramList);
-                    }
-                    else
-                    {
-                        type TestCallbackType =
-                        (this: Context, ...paramsAndDone: AppendToTuple<ParamListType, Done>) =>
-                        void;
-                        fnWrapper = bindArgumentsButLast(fn as TestCallbackType, paramList);
-                    }
-                    const test = createTest(title, fnWrapper);
-                    return test;
-                },
-            );
+                    type TestCallbackType =
+                    (this: Context, ...params: ParamListType) => PromiseLike<any> | void;
+                    fnWrapper = bindArguments(fn as TestCallbackType, paramList);
+                }
+                else
+                {
+                    type TestCallbackType =
+                    (this: Context, ...paramsAndDone: AppendToTuple<ParamListType, Done>) => void;
+                    fnWrapper = bindArgumentsButLast(fn as TestCallbackType, paramList);
+                }
+                const test = createTest(title, fnWrapper);
+                tests.push(test);
+            }
             return tests;
         }
 

@@ -8,6 +8,7 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
+import { isArrayBased }                                 from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }     from 'assert';
 import { Suite }                                        from 'mocha';
 import { SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
@@ -130,11 +131,21 @@ describe
             );
 
             // Return value
+            ok(isArrayBased(actualDescribeReturnValue));
             deepStrictEqual
             (
-                actualDescribeReturnValue,
+                [...actualDescribeReturnValue],
                 spyCalls.map(({ returnValue }: SinonSpyCall) => returnValue),
             );
+
+            // Return value timeout
+            const suiteCount = bddDescribeAny.length;
+            const expectedTimeout = (suiteCount + 1) * 500;
+            deepStrictEqual(actualDescribeReturnValue.timeout(), expectedTimeout);
+            const timeout = 42;
+            actualDescribeReturnValue.timeout(timeout);
+            for (const suite of actualDescribeReturnValue)
+                deepStrictEqual(suite.timeout(), timeout);
         }
 
         function getTestParams(): ParamArrayLike<string>
@@ -168,9 +179,11 @@ describe
                 function newSuite(): Suite
                 {
                     const suite = new Suite('abc');
+                    suite.timeout(timeout += 1000);
                     return suite;
                 }
 
+                let timeout = 0;
                 const sandbox = createSandbox();
                 const describe = bddDescribe = sandbox.stub().callsFake(newSuite) as BDDDescribe;
                 bddDescribeOnly = describe.only = sandbox.stub().callsFake(newSuite);

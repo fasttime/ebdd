@@ -157,6 +157,30 @@
         }
         return ParamInfo;
     }());
+    var SpecItemArrayPrototype = Object.create(Array.prototype, {
+        timeout: {
+            configurable: true,
+            value: function (ms) {
+                if (arguments.length) {
+                    for (var _i = 0, _a = this; _i < _a.length; _i++) {
+                        var specItem = _a[_i];
+                        specItem.timeout(ms);
+                    }
+                    return this;
+                }
+                {
+                    var sum = 0;
+                    for (var _b = 0, _c = this; _b < _c.length; _b++) {
+                        var specItem = _c[_b];
+                        sum += specItem.timeout();
+                    }
+                    var ms_1 = sum / this.length;
+                    return ms_1;
+                }
+            },
+            writable: true,
+        },
+    });
     function bindArguments(fn, args) {
         var boundFn = function () {
             var returnValue = fn.apply(this, args);
@@ -183,13 +207,15 @@
                 var paramCount = baseParamLists[0].length;
                 validateSuiteCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
-                var suites = baseParamLists.map(function (paramList) {
+                var suites = Object.create(SpecItemArrayPrototype);
+                for (var _i = 0, baseParamLists_1 = baseParamLists; _i < baseParamLists_1.length; _i++) {
+                    var paramList = baseParamLists_1[_i];
                     var createSuite = getCreateSuite(paramList.mode);
                     var title = titleFormatter(paramList);
                     var fnWrapper = bindArguments(fn, paramList);
-                    var suite = createSuite(title, fnWrapper);
-                    return suite;
-                });
+                    var suite_1 = createSuite(title, fnWrapper);
+                    suites.push(suite_1);
+                }
                 return suites;
             }
             stub.per =
@@ -217,19 +243,21 @@
                 var paramCount = baseParamLists[0].length;
                 validateTestCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
-                var tests = baseParamLists.map(function (paramList) {
+                var tests = Object.create(SpecItemArrayPrototype);
+                for (var _i = 0, baseParamLists_2 = baseParamLists; _i < baseParamLists_2.length; _i++) {
+                    var paramList = baseParamLists_2[_i];
                     var createTest = getCreateTest(paramList.mode);
                     var title = titleFormatter(paramList);
-                    var fnWrapper;
+                    var fnWrapper = void 0;
                     if (fn.length === paramCount) {
                         fnWrapper = bindArguments(fn, paramList);
                     }
                     else {
                         fnWrapper = bindArgumentsButLast(fn, paramList);
                     }
-                    var test = createTest(title, fnWrapper);
-                    return test;
-                });
+                    var test_1 = createTest(title, fnWrapper);
+                    tests.push(test_1);
+                }
                 return tests;
             }
             stub.per =
@@ -418,8 +446,8 @@
     function multiplyParams(params, baseParamLists) {
         var newParamLists = createParamLists(params, Mode.NORMAL);
         var paramLists = [];
-        for (var _i = 0, baseParamLists_1 = baseParamLists; _i < baseParamLists_1.length; _i++) {
-            var baseParamList = baseParamLists_1[_i];
+        for (var _i = 0, baseParamLists_3 = baseParamLists; _i < baseParamLists_3.length; _i++) {
+            var baseParamList = baseParamLists_3[_i];
             var baseMode = baseParamList.mode;
             for (var _a = 0, newParamLists_1 = newParamLists; _a < newParamLists_1.length; _a++) {
                 var newParamList = newParamLists_1[_a];

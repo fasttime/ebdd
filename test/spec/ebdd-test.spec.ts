@@ -8,6 +8,7 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
+import { isArrayBased }                                 from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }     from 'assert';
 import { Done, Test }                                   from 'mocha';
 import { SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
@@ -69,6 +70,7 @@ describe
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
                     [['A'], ['B'], ['C'], ['D'], ['E']],
                     [],
+                    3000,
                 );
             }
             {
@@ -87,6 +89,7 @@ describe
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
                     [['A'], ['B'], ['C'], ['D'], ['E']],
                     [done],
+                    8000,
                 );
             }
         }
@@ -100,6 +103,7 @@ describe
             getExpectedTitle:   (expectedParams: readonly unknown[]) => string,
             expectedParamsList: readonly (readonly unknown[])[],
             extraArgs:          readonly unknown[],
+            expectedTimeout:    number,
         ):
         void
         {
@@ -180,8 +184,19 @@ describe
             );
 
             // Return value
+            ok(isArrayBased(actualItReturnValue));
             deepStrictEqual
-            (actualItReturnValue, spyCalls.map(({ returnValue }: SinonSpyCall) => returnValue));
+            (
+                [...actualItReturnValue],
+                spyCalls.map(({ returnValue }: SinonSpyCall) => returnValue),
+            );
+
+            // Return value timeout
+            deepStrictEqual(actualItReturnValue.timeout(), expectedTimeout);
+            const timeout = 42;
+            actualItReturnValue.timeout(timeout);
+            for (const test of actualItReturnValue)
+                deepStrictEqual(test.timeout(), timeout);
         }
 
         function getTestParams(): ParamArrayLike<string>
@@ -214,9 +229,11 @@ describe
                 function newTest(): Test
                 {
                     const test = new Test('abc');
+                    test.timeout(timeout += 1000);
                     return test;
                 }
 
+                let timeout = 0;
                 const sandbox = createSandbox();
                 const it = sandbox.stub().callsFake(newTest) as BDDIt;
                 bddIt = { it, useFn: true };
@@ -508,6 +525,7 @@ describe
                     ([count, food]: readonly unknown[]) => `${count} ${food}`,
                     expectedParamsList,
                     [],
+                    5000,
                 );
             },
         );
