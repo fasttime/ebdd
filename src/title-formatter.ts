@@ -60,7 +60,7 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
         }
         const [, rank] = rankMatch;
         const paramIndex = rank ? rank as any - 1 : 0;
-        const keys: string[] = [];
+        const placeholder: string[] = [];
         let index = rankRegExp.lastIndex;
         let propNameMatch: RegExpExecArray | null;
         while (propNameMatch = propNameRegExp.exec(titlePattern.slice(index)))
@@ -74,11 +74,11 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
                 escapedPropName : propNameMatch[4]
             )
             .replace(/\\([^])/g, '$1');
-            keys.push(propName);
+            placeholder.push(propName);
             index += propNameMatch[0].length;
         }
         rankRegExp.lastIndex = index;
-        const placeholder = makePlaceholder(keys, start, index, paramIndex);
+        makePlaceholder(placeholder, start, index, paramIndex);
         validatePlaceholder(placeholder, !rank);
         return placeholder;
     }
@@ -157,14 +157,12 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
 }
 
 function makePlaceholder
-(keys: string[], start: number, end: number, paramIndex: number): Placeholder
+(placeholder: readonly string[], start: number, end: number, paramIndex: number):
+asserts placeholder is Placeholder
 {
-    const placeholder =
-    keys as string[] & { start: number; end: number; paramIndex: number; };
-    placeholder.start = start;
-    placeholder.end = end;
-    placeholder.paramIndex = paramIndex;
-    return placeholder;
+    (placeholder as string[] & { start: number; }).start = start;
+    (placeholder as string[] & { end: number; }).end = end;
+    (placeholder as string[] & { paramIndex: number; }).paramIndex = paramIndex;
 }
 
 const propNameRegExp =

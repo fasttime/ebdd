@@ -37,7 +37,7 @@ export interface EBDDGlobals
     describe:   UnparameterizedSuiteFunction;
     it:         UnparameterizedTestFunction;
     only:       <ParamType>(param: ParamType) => ParamInfo<ParamType>;
-    run:        () => void;
+    run?:       () => void;
     skip:       <ParamType>(param: ParamType) => ParamInfo<ParamType>;
     specify:    UnparameterizedTestFunction;
     when:       <ParamType>(condition: boolean, param: ParamType) => ParamInfo<ParamType>;
@@ -451,11 +451,11 @@ function createParamLists
             params,
             (paramOrParamInfo: ParamOrParamInfo<ParamType>): ParamList<[ParamType]> =>
             {
-                let stub: [ParamType];
+                let paramList: [ParamType];
                 let mode: Mode;
                 if (paramOrParamInfo instanceof ParamInfo)
                 {
-                    stub = [paramOrParamInfo.param];
+                    paramList = [paramOrParamInfo.param];
                     const paramInfoMode = paramOrParamInfo.mode;
                     if (typeof paramInfoMode !== 'number' || !(paramInfoMode in Mode))
                     {
@@ -466,10 +466,10 @@ function createParamLists
                 }
                 else
                 {
-                    stub = [paramOrParamInfo];
+                    paramList = [paramOrParamInfo];
                     mode = baseMode;
                 }
-                const paramList = makeParamList(stub, mode);
+                makeParamList(paramList, mode);
                 return paramList;
             },
         );
@@ -494,11 +494,10 @@ export function initEBDD({ interfaces }: MochaConstructor): (suite: Suite) => vo
 }
 
 function makeParamList
-<ParamListType extends unknown[]>(stub: ParamListType, mode: Mode): ParamList<ParamListType>
+<ParamListType extends unknown[]>(paramList: ParamListType, mode: Mode):
+asserts paramList is ParamList<ParamListType>
 {
-    const paramList = stub as ParamListType & { mode: Mode; };
-    paramList.mode = mode;
-    return paramList;
+    (paramList as ParamListType & { mode: Mode; }).mode = mode;
 }
 
 function makeParameterizableFunction
@@ -563,10 +562,10 @@ readonly ParamList<AppendToTuple<ParamListType, ParamType>>[]
         const baseMode = baseParamList.mode;
         for (const newParamList of newParamLists)
         {
-            const paramListStub =
+            const paramList =
             [...baseParamList, ...newParamList] as AppendToTuple<ParamListType, ParamType>;
             const mode = maxMode(newParamList.mode, baseMode);
-            const paramList = makeParamList(paramListStub, mode);
+            makeParamList(paramList, mode);
             paramLists.push(paramList);
         }
     }
@@ -582,9 +581,9 @@ function onlyAll
     (
         (baseParamList: ParamList<ParamListType>): ParamList<ParamListType> =>
         {
-            const paramListStub = [...baseParamList] as ParamListType;
+            const paramList = [...baseParamList] as ParamListType;
             const mode = maxMode(Mode.ONLY, baseParamList.mode);
-            const paramList = makeParamList(paramListStub, mode);
+            makeParamList(paramList, mode);
             return paramList;
         },
     );
@@ -600,8 +599,8 @@ function skipAll
     (
         (baseParamList: ParamList<ParamListType>): ParamList<ParamListType> =>
         {
-            const stub = [...baseParamList] as ParamListType;
-            const paramList = makeParamList(stub, Mode.SKIP);
+            const paramList = [...baseParamList] as ParamListType;
+            makeParamList(paramList, Mode.SKIP);
             return paramList;
         },
     );

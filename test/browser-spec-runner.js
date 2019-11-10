@@ -47,7 +47,7 @@
             }
             var rank = rankMatch[1];
             var paramIndex = rank ? rank - 1 : 0;
-            var keys = [];
+            var placeholder = [];
             var index = rankRegExp.lastIndex;
             var propNameMatch;
             while (propNameMatch = propNameRegExp.exec(titlePattern.slice(index))) {
@@ -57,11 +57,11 @@
                     ((escapedPropName = propNameMatch[3]) != null ?
                         escapedPropName : propNameMatch[4])
                         .replace(/\\([^])/g, '$1');
-                keys.push(propName);
+                placeholder.push(propName);
                 index += propNameMatch[0].length;
             }
             rankRegExp.lastIndex = index;
-            var placeholder = makePlaceholder(keys, start, index, paramIndex);
+            makePlaceholder(placeholder, start, index, paramIndex);
             validatePlaceholder(placeholder, !rank);
             return placeholder;
         }
@@ -122,12 +122,10 @@
         pushStaticChunk(titlePattern.length);
         return chunks;
     }
-    function makePlaceholder(keys, start, end, paramIndex) {
-        var placeholder = keys;
+    function makePlaceholder(placeholder, start, end, paramIndex) {
         placeholder.start = start;
         placeholder.end = end;
         placeholder.paramIndex = paramIndex;
-        return placeholder;
     }
     var propNameRegExp = /^\.((?!\d)[$\w\u0080-\uffff]+)|^\[(?:(0|-?[1-9]\d*)|"((?:[^\\"]|\\[^])*)"|'((?:[^\\']|\\[^])*)')]/;
 
@@ -377,10 +375,10 @@
     function createParamLists(params, baseMode) {
         if (params !== undefined && params !== null) {
             var paramLists = Array.prototype.map.call(params, function (paramOrParamInfo) {
-                var stub;
+                var paramList;
                 var mode;
                 if (paramOrParamInfo instanceof ParamInfo) {
-                    stub = [paramOrParamInfo.param];
+                    paramList = [paramOrParamInfo.param];
                     var paramInfoMode = paramOrParamInfo.mode;
                     if (typeof paramInfoMode !== 'number' || !(paramInfoMode in Mode)) {
                         var message_1 = 'Invalid parameter.';
@@ -389,10 +387,10 @@
                     mode = maxMode(paramInfoMode, baseMode);
                 }
                 else {
-                    stub = [paramOrParamInfo];
+                    paramList = [paramOrParamInfo];
                     mode = baseMode;
                 }
-                var paramList = makeParamList(stub, mode);
+                makeParamList(paramList, mode);
                 return paramList;
             });
             if (paramLists.length)
@@ -411,10 +409,8 @@
         interfaces.ebdd = ebdd;
         return ebdd;
     }
-    function makeParamList(stub, mode) {
-        var paramList = stub;
+    function makeParamList(paramList, mode) {
         paramList.mode = mode;
-        return paramList;
     }
     function makeParameterizableFunction(stub, skip, only, brand) {
         switch (brand) {
@@ -456,9 +452,9 @@
             var baseMode = baseParamList.mode;
             for (var _a = 0, newParamLists_1 = newParamLists; _a < newParamLists_1.length; _a++) {
                 var newParamList = newParamLists_1[_a];
-                var paramListStub = __spreadArrays(baseParamList, newParamList);
+                var paramList = __spreadArrays(baseParamList, newParamList);
                 var mode = maxMode(newParamList.mode, baseMode);
-                var paramList = makeParamList(paramListStub, mode);
+                makeParamList(paramList, mode);
                 paramLists.push(paramList);
             }
         }
@@ -466,17 +462,17 @@
     }
     function onlyAll(baseParamLists) {
         var paramLists = baseParamLists.map(function (baseParamList) {
-            var paramListStub = __spreadArrays(baseParamList);
+            var paramList = __spreadArrays(baseParamList);
             var mode = maxMode(Mode.ONLY, baseParamList.mode);
-            var paramList = makeParamList(paramListStub, mode);
+            makeParamList(paramList, mode);
             return paramList;
         });
         return paramLists;
     }
     function skipAll(baseParamLists) {
         var paramLists = baseParamLists.map(function (baseParamList) {
-            var stub = __spreadArrays(baseParamList);
-            var paramList = makeParamList(stub, Mode.SKIP);
+            var paramList = __spreadArrays(baseParamList);
+            makeParamList(paramList, Mode.SKIP);
             return paramList;
         });
         return paramLists;
