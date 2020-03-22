@@ -6,15 +6,34 @@
 
 (function ()
 {
-    if (!('Uint8Array' in self))
-    {
-        var Uint8Array =
-        function ()
+    [
+        'Float32Array',
+        'Float64Array',
+        'Int16Array',
+        'Int32Array',
+        'Int8Array',
+        'Map',
+        'Set',
+        'Uint16Array',
+        'Uint32Array',
+        'Uint8Array',
+        'Uint8ClampedArray',
+    ]
+    .forEach
+    (
+        function (name)
         {
-        };
+            if (!(name in self))
+            {
+                var value =
+                function ()
+                {
+                };
 
-        Object.defineProperty
-        (self, 'Uint8Array', { value: Uint8Array, writable: true, configurable: true });
-    }
+                Object.defineProperty
+                (self, name, { value: value, writable: true, configurable: true });
+            }
+        }
+    );
 }
 )();

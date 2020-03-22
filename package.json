@@ -26,25 +26,24 @@
     "build": "npm install && gulp",
     "node-test": "node -- node-test/node_modules/.bin/mocha --require=./test/node-test-adapter --check-leaks node-test/test/**/*.spec.js",
     "prepare-node-test": "node build/prepare-node-test",
-    "prepublish": "node build/patch-sinon",
+    "prepare": "node build/patch-sinon",
     "test": "TS_NODE_PROJECT=test/tsconfig.json mocha --require=ts-node/register --check-leaks test/**/*.spec.ts"
   },
   "devDependencies": {
-    "@types/mocha": "~5.2.7",
-    "@types/sinon": "~7.5.0",
-    "del": "~5.1.0",
+    "@fasttime/gulp-lint": "~0.24.0",
+    "@types/mocha": "~7.0.2",
+    "@types/sinon": "~7.5.2",
+    "c8": "~7.1.0",
     "gulp": "~4.0.2",
-    "gulp-fasttime-lint": "~0.18.0",
     "gulp-typescript": "~5.0.1",
-    "mocha": "~6.2.2",
+    "mocha": "~7.1.1",
     "mocha-bar": "~0.0.4",
-    "nyc": "~14.1.1",
-    "rollup": "~1.26.4",
+    "rollup": "~2.1.0",
     "rollup-plugin-node-builtins": "~2.1.2",
     "rollup-plugin-node-globals": "~1.4.0",
-    "sinon": "~7.5.0",
-    "ts-node": "~8.4.1",
-    "typescript": "~3.7.2"
+    "sinon": "~9.0.1",
+    "ts-node": "~8.8.1",
+    "typescript": "~3.8.3"
   },
   "peerDependencies": {
     "mocha": ">=3.0.0"

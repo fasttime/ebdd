@@ -347,8 +347,7 @@
                     return bddXit;
             }
         }
-        var bddDescribe = context.describe;
-        var bddIt = context.it;
+        var _a = context, bddDescribe = _a.describe, bddIt = _a.it;
         var bddXit = function (title) { return bddIt(title); };
         context.describe = context.context =
             createUnparameterizedSuiteFunction();
@@ -409,6 +408,8 @@
     }
     function makeParameterizableFunction(stub, skip, only, brand) {
         switch (brand) {
+            case Brand.NONE:
+                break;
             case Brand.XIT:
                 skip = only =
                     function () {

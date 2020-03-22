@@ -8,10 +8,10 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
-import { isArrayBased }                                 from './utils';
-import { deepStrictEqual, ok, strictEqual, throws }     from 'assert';
-import { Suite }                                        from 'mocha';
-import { SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
+import { isArrayBased }                                             from './utils';
+import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
+import { Suite }                                                    from 'mocha';
+import { SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }    from 'sinon';
 
 describe
 (
@@ -79,7 +79,7 @@ describe
                 {
                     if (uniqueBDDDescribeAny.indexOf(bddDescribeAny) < 0)
                         uniqueBDDDescribeAny.push(bddDescribeAny);
-                    const nextCallIndex = bddDescribeAny.nextCallIndex || 0;
+                    const nextCallIndex = bddDescribeAny.nextCallIndex ?? 0;
                     bddDescribeAny.nextCallIndex = nextCallIndex + 1;
                     const spyCall = bddDescribeAny.getCall(nextCallIndex);
                     return spyCall;
@@ -87,12 +87,12 @@ describe
             );
 
             // describe callback order
-            spyCalls.reduce
+            (spyCalls as unknown as SinonSpy[]).reduce
             (
-                (previousSpyCall: SinonSpyCall, currentSpyCall: SinonSpyCall) =>
+                (previousSpy: SinonSpy, currentSpy: SinonSpy) =>
                 {
-                    ok((currentSpyCall as any).calledImmediatelyAfter(previousSpyCall));
-                    return currentSpyCall;
+                    ok(currentSpy.calledImmediatelyAfter(previousSpy));
+                    return currentSpy;
                 },
             );
 
@@ -123,7 +123,7 @@ describe
                 {
                     suiteCallbackSpy.resetHistory();
                     const expectedThis = { };
-                    actualSuiteCallback.call(expectedThis);
+                    (actualSuiteCallback as Function).call(expectedThis);
                     const { lastCall } = suiteCallbackSpy;
                     deepStrictEqual(lastCall.thisValue, expectedThis);
                     deepStrictEqual(lastCall.args, expectedParamsList[index]);

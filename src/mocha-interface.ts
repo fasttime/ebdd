@@ -25,7 +25,10 @@ declare namespace AppendToTuple
 type AppendToTuple<TupleType extends unknown[], ElementType> =
 AppendToTuple.AppendToTuple<TupleType, ElementType>;
 
-enum Brand { NONE, XIT, XDESCRIBE, SKIP_OR_ONLY }
+enum Brand
+{
+    NONE, XIT, XDESCRIBE, SKIP_OR_ONLY
+}
 
 export interface EBDDGlobals
 {
@@ -52,7 +55,10 @@ export interface MochaConstructor
     readonly interfaces: { [InterfaceName: string]: (suite: Suite) => void; };
 }
 
-enum Mode { NORMAL, ONLY, SKIP }
+enum Mode
+{
+    NORMAL, ONLY, SKIP
+}
 
 export type ParamArrayLike<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;
 
@@ -414,9 +420,9 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
         }
     }
 
-    const bddDescribe   = (context as MochaGlobals).describe;
-    const bddIt         = (context as MochaGlobals).it;
-    const bddXit        = (title: string): Test => bddIt(title);
+    const { describe: bddDescribe, it: bddIt } = context as MochaGlobals;
+
+    const bddXit = (title: string): Test => bddIt(title);
 
     context.describe = context.context =
     createUnparameterizedSuiteFunction();
@@ -512,6 +518,8 @@ ParameterizableFunctionType
 {
     switch (brand)
     {
+    case Brand.NONE:
+        break;
     case Brand.XIT:
         skip = only =
         (): never =>

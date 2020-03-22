@@ -7,11 +7,11 @@ task
     'clean',
     async () =>
     {
-        const del = require('del');
+        const { promises: { rmdir } } = require('fs');
 
-        const patterns =
-        ['.nyc_output', '.tmp-src', 'coverage', 'ebdd.js', 'test/browser-spec-runner.js'];
-        await del(patterns);
+        const paths = ['.tmp-src', 'coverage', 'ebdd.js', 'test/browser-spec-runner.js'];
+        const options = { recursive: true };
+        await Promise.all(paths.map(path => rmdir(path, options)));
     },
 );
 
@@ -20,7 +20,7 @@ task
     'lint',
     () =>
     {
-        const lint = require('gulp-fasttime-lint');
+        const lint = require('@fasttime/gulp-lint');
 
         const stream =
         lint
@@ -50,22 +50,20 @@ task
         const { fork } = require('child_process');
 
         const { resolve } = require;
-        const nycPath = resolve('nyc/bin/nyc');
+        const c8 = resolve('c8/bin/c8');
         const mochaPath = resolve('mocha/bin/mocha');
         const forkArgs =
         [
-            '--extension=.ts',
             '--include=src',
             '--reporter=html',
             '--reporter=text-summary',
-            '--',
             mochaPath,
             '--require=ts-node/register',
             '--check-leaks',
             'test/**/*.spec.ts',
         ];
         const forkOpts = { env: { ...process.env, TS_NODE_PROJECT: 'test/tsconfig.json' } };
-        const childProcess = fork(nycPath, forkArgs, forkOpts);
+        const childProcess = fork(c8, forkArgs, forkOpts);
         childProcess.on('exit', code => callback(code && 'Test failed'));
     },
 );

@@ -8,10 +8,10 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
-import { isArrayBased }                                 from './utils';
-import { deepStrictEqual, ok, strictEqual, throws }     from 'assert';
-import { Done, Test }                                   from 'mocha';
-import { SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
+import { isArrayBased }                                             from './utils';
+import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
+import { Done, Test }                                               from 'mocha';
+import { SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }    from 'sinon';
 
 describe
 (
@@ -123,7 +123,7 @@ describe
                     const { it }: { it: CallCountingStub; } = bddCallData;
                     if (uniqueBDDItAny.indexOf(it) < 0)
                         uniqueBDDItAny.push(it);
-                    const nextCallIndex = it.nextCallIndex || 0;
+                    const nextCallIndex = it.nextCallIndex ?? 0;
                     it.nextCallIndex = nextCallIndex + 1;
                     const spyCall = it.getCall(nextCallIndex);
                     return spyCall;
@@ -131,12 +131,12 @@ describe
             );
 
             // it callback order
-            spyCalls.reduce
+            (spyCalls as unknown as SinonSpy[]).reduce
             (
-                (previousSpyCall: SinonSpyCall, currentSpyCall: SinonSpyCall) =>
+                (previousSpy: SinonSpy, currentSpy: SinonSpy) =>
                 {
-                    ok((currentSpyCall as any).calledImmediatelyAfter(previousSpyCall));
-                    return currentSpyCall;
+                    ok(currentSpy.calledImmediatelyAfter(previousSpy));
+                    return currentSpy;
                 },
             );
 
@@ -174,7 +174,7 @@ describe
                     {
                         testCallbackSpy.resetHistory();
                         const expectedThis = { };
-                        actualTestCallback.call(expectedThis, ...extraArgs);
+                        (actualTestCallback as Function).call(expectedThis, ...extraArgs);
                         const { lastCall } = testCallbackSpy;
                         deepStrictEqual(lastCall.thisValue, expectedThis);
                         deepStrictEqual
