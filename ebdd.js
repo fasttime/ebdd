@@ -1,4 +1,4 @@
-// EBDD 0.4.0 – https://github.com/fasttime/EBDD
+// EBDD 0.4.1 – https://github.com/fasttime/EBDD
 
 (function () {
     'use strict';
