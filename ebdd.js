@@ -195,23 +195,47 @@
         return boundFn;
     }
     function createInterface(context) {
-        function createParameterizedSuiteFunction(baseParamLists, brand) {
+        function createAdaptableSuiteFunction() {
+            function adapt(adapter) {
+                var describe = createUnparameterizedSuiteFunction(Mode.NORMAL, Brand.NONE, adapter);
+                return describe;
+            }
+            var describe = createUnparameterizedSuiteFunction();
+            describe.adapt = adapt;
+            return describe;
+        }
+        function createAdaptableTestFunction() {
+            function adapt(adapter) {
+                var it = createUnparameterizedTestFunction(Mode.NORMAL, Brand.NONE, adapter);
+                return it;
+            }
+            var it = createUnparameterizedTestFunction();
+            it.adapt = adapt;
+            return it;
+        }
+        function createParameterizedSuiteFunction(baseParamLists, brand, adapter) {
             function skip(brand) {
-                var describe = createParameterizedSuiteFunction(skipAll(baseParamLists), brand);
+                var describe = createParameterizedSuiteFunction(skipAll(baseParamLists), brand, adapter);
                 return describe;
             }
             function stub(titlePattern, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitlePattern(titlePattern);
                 var paramCount = baseParamLists[0].length;
                 validateSuiteCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
                 var suites = Object.create(SpecItemArrayPrototype);
-                for (var _i = 0, baseParamLists_1 = baseParamLists; _i < baseParamLists_1.length; _i++) {
-                    var paramList = baseParamLists_1[_i];
+                for (var _a = 0, baseParamLists_1 = baseParamLists; _a < baseParamLists_1.length; _a++) {
+                    var paramList = baseParamLists_1[_a];
                     var createSuite = getCreateSuite(paramList.mode);
                     var title = titleFormatter(paramList);
                     var fnWrapper = bindArguments(fn, paramList);
                     var suite_1 = createSuite(title, fnWrapper);
+                    if (adapter)
+                        adapter.apply(suite_1, adaptParams);
                     suites.push(suite_1);
                 }
                 return suites;
@@ -219,31 +243,37 @@
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
-                    var describe = createParameterizedSuiteFunction(paramLists, brand);
+                    var describe = createParameterizedSuiteFunction(paramLists, brand, adapter);
                     return describe;
                 };
             stub.when =
                 function (condition) {
                     return condition ? describe : skip(brand);
                 };
-            var describe = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
-                return createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
+            var describe = makeParameterizableFunction(stub, function () {
+                return skip(Brand.SKIP_OR_ONLY);
+            }, function () {
+                return createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return describe;
         }
-        function createParameterizedTestFunction(baseParamLists, brand) {
+        function createParameterizedTestFunction(baseParamLists, brand, adapter) {
             function skip(brand) {
-                var it = createParameterizedTestFunction(skipAll(baseParamLists), brand);
+                var it = createParameterizedTestFunction(skipAll(baseParamLists), brand, adapter);
                 return it;
             }
             function stub(titlePattern, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitlePattern(titlePattern);
                 var paramCount = baseParamLists[0].length;
                 validateTestCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
                 var tests = Object.create(SpecItemArrayPrototype);
-                for (var _i = 0, baseParamLists_2 = baseParamLists; _i < baseParamLists_2.length; _i++) {
-                    var paramList = baseParamLists_2[_i];
+                for (var _a = 0, baseParamLists_2 = baseParamLists; _a < baseParamLists_2.length; _a++) {
+                    var paramList = baseParamLists_2[_a];
                     var createTest = getCreateTest(paramList.mode);
                     var title = titleFormatter(paramList);
                     var fnWrapper = void 0;
@@ -254,6 +284,8 @@
                         fnWrapper = bindArgumentsButLast(fn, paramList);
                     }
                     var test_1 = createTest(title, fnWrapper);
+                    if (adapter)
+                        adapter.apply(test_1, adaptParams);
                     tests.push(test_1);
                 }
                 return tests;
@@ -261,69 +293,83 @@
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
-                    var it = createParameterizedTestFunction(paramLists, brand);
+                    var it = createParameterizedTestFunction(paramLists, brand, adapter);
                     return it;
                 };
             stub.when =
                 function (condition) {
                     return condition ? it : skip(brand);
                 };
-            var it = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
-                return createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
+            var it = makeParameterizableFunction(stub, function () {
+                return skip(Brand.SKIP_OR_ONLY);
+            }, function () {
+                return createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return it;
         }
-        function createUnparameterizedSuiteFunction(baseMode, brand) {
+        function createUnparameterizedSuiteFunction(baseMode, brand, adapter) {
             if (baseMode === void 0) { baseMode = Mode.NORMAL; }
             if (brand === void 0) { brand = Brand.NONE; }
             function stub(title, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitle(title);
                 validateSuiteCallback(fn, 0);
                 var createSuite = getCreateSuite(baseMode);
                 var suite = createSuite(title, fn);
+                if (adapter)
+                    adapter.apply(suite, adaptParams);
                 return suite;
             }
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
-                    var describe = createParameterizedSuiteFunction(paramLists, brand);
+                    var describe = createParameterizedSuiteFunction(paramLists, brand, adapter);
                     return describe;
                 };
             stub.when =
                 function (condition) {
-                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
+                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand, adapter);
                 };
             var describe = makeParameterizableFunction(stub, function () {
-                return createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
+                return createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY, adapter);
             }, function () {
-                return createUnparameterizedSuiteFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY);
+                return createUnparameterizedSuiteFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return describe;
         }
-        function createUnparameterizedTestFunction(baseMode, brand) {
+        function createUnparameterizedTestFunction(baseMode, brand, adapter) {
             if (baseMode === void 0) { baseMode = Mode.NORMAL; }
             if (brand === void 0) { brand = Brand.NONE; }
             function stub(title, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitle(title);
                 validateTestCallback(fn, 0);
                 var createTest = getCreateTest(baseMode);
                 var test = createTest(title, fn);
+                if (adapter)
+                    adapter.apply(test, adaptParams);
                 return test;
             }
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
-                    var it = createParameterizedTestFunction(paramLists, brand);
+                    var it = createParameterizedTestFunction(paramLists, brand, adapter);
                     return it;
                 };
             stub.when =
                 function (condition) {
-                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
+                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand, adapter);
                 };
             var it = makeParameterizableFunction(stub, function () {
-                return createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
+                return createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY, adapter);
             }, function () {
-                return createUnparameterizedTestFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY);
+                return createUnparameterizedTestFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return it;
         }
@@ -350,11 +396,11 @@
         var _a = context, bddDescribe = _a.describe, bddIt = _a.it;
         var bddXit = function (title) { return bddIt(title); };
         context.describe = context.context =
-            createUnparameterizedSuiteFunction();
+            createAdaptableSuiteFunction();
         context.xdescribe = context.xcontext =
             createUnparameterizedSuiteFunction(Mode.SKIP, Brand.XDESCRIBE);
         context.it = context.specify =
-            createUnparameterizedTestFunction();
+            createAdaptableTestFunction();
         context.xit = context.xspecify =
             createUnparameterizedTestFunction(Mode.SKIP, Brand.XIT);
         context.only =

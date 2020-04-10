@@ -8,9 +8,9 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
-import { isArrayBased }                                             from './utils';
+import { CallCountingStub, isArrayBased }                           from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
-import { Suite }                                                    from 'mocha';
+import { Context, Suite }                                           from 'mocha';
 import { SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }    from 'sinon';
 
 describe
@@ -34,8 +34,8 @@ describe
 
         function assertBDDDescribes<ParamListType extends unknown[]>
         (
-            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType>,
-            bddDescribeAny:     readonly SinonStub[],
+            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType, []>,
+            bddDescribeAnyList: readonly SinonStub[],
         ):
         void
         {
@@ -45,7 +45,7 @@ describe
             assertBDDDescribesWithParams
             (
                 ebddDescribeAny,
-                bddDescribeAny,
+                bddDescribeAnyList,
                 '"#" is good',
                 suiteCallback,
                 ([letter]: readonly unknown[]) => `"${letter}" is good`,
@@ -55,8 +55,8 @@ describe
 
         function assertBDDDescribesWithParams<ParamListType extends unknown[]>
         (
-            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType>,
-            bddDescribeAny:     readonly SinonStub[],
+            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType, []>,
+            bddDescribeAnyList: readonly SinonStub[],
             titlePattern:       string,
             suiteCallback:      (...args: any) => void,
             getExpectedTitle:   (expectedParams: readonly unknown[]) => string,
@@ -64,30 +64,14 @@ describe
         ):
         void
         {
-            interface CallCountingStub extends SinonStub
-            {
-                nextCallIndex?: number;
-            }
-
             const suiteCallbackSpy = spy(suiteCallback);
             const actualDescribeReturnValue = ebddDescribeAny(titlePattern, suiteCallbackSpy);
             const uniqueBDDDescribeAny: CallCountingStub[] = [];
-            const spyCalls =
-            bddDescribeAny.map
-            (
-                (bddDescribeAny: CallCountingStub): SinonSpyCall =>
-                {
-                    if (uniqueBDDDescribeAny.indexOf(bddDescribeAny) < 0)
-                        uniqueBDDDescribeAny.push(bddDescribeAny);
-                    const nextCallIndex = bddDescribeAny.nextCallIndex ?? 0;
-                    bddDescribeAny.nextCallIndex = nextCallIndex + 1;
-                    const spyCall = bddDescribeAny.getCall(nextCallIndex);
-                    return spyCall;
-                },
-            );
+            const bddDescribeAnyCalls =
+            getCallsInExpectedOrder(bddDescribeAnyList, uniqueBDDDescribeAny);
 
             // describe callback order
-            (spyCalls as unknown as SinonSpy[]).reduce
+            (bddDescribeAnyCalls as unknown as SinonSpy[]).reduce
             (
                 (previousSpy: SinonSpy, currentSpy: SinonSpy) =>
                 {
@@ -106,7 +90,7 @@ describe
             );
 
             // Suite titles
-            spyCalls.forEach
+            bddDescribeAnyCalls.forEach
             (
                 ({ args: [actualTitle] }: SinonSpyCall, index: number) =>
                 {
@@ -117,7 +101,7 @@ describe
             );
 
             // Suite callback functions calls
-            spyCalls.forEach
+            bddDescribeAnyCalls.forEach
             (
                 ({ args: [, actualSuiteCallback] }: SinonSpyCall, index: number) =>
                 {
@@ -135,17 +119,41 @@ describe
             deepStrictEqual
             (
                 [...actualDescribeReturnValue],
-                spyCalls.map(({ returnValue }: SinonSpyCall) => returnValue),
+                bddDescribeAnyCalls.map
+                (({ returnValue }: SinonSpyCall<any[], Suite>) => returnValue),
             );
 
             // Return value timeout
-            const suiteCount = bddDescribeAny.length;
+            const suiteCount = bddDescribeAnyList.length;
             const expectedTimeout = (suiteCount + 1) * 500;
             deepStrictEqual(actualDescribeReturnValue.timeout(), expectedTimeout);
             const timeout = 42;
             actualDescribeReturnValue.timeout(timeout);
             for (const suite of actualDescribeReturnValue)
                 deepStrictEqual(suite.timeout(), timeout);
+        }
+
+        function getCallsInExpectedOrder
+        (
+            bddDescribeAnyList: readonly SinonStub[],
+            uniqueBDDDescribeAny: CallCountingStub[] = [],
+        ):
+        SinonSpyCall[]
+        {
+            const bddDescribeAnyCalls =
+            bddDescribeAnyList.map
+            (
+                (bddDescribeAny: CallCountingStub): SinonSpyCall =>
+                {
+                    if (uniqueBDDDescribeAny.indexOf(bddDescribeAny) < 0)
+                        uniqueBDDDescribeAny.push(bddDescribeAny);
+                    const nextCallIndex = bddDescribeAny.nextCallIndex ?? 0;
+                    bddDescribeAny.nextCallIndex = nextCallIndex + 1;
+                    const spyCall = bddDescribeAny.getCall(nextCallIndex);
+                    return spyCall;
+                },
+            );
+            return bddDescribeAnyCalls;
         }
 
         function getTestParams(): ParamArrayLike<string>
@@ -176,9 +184,9 @@ describe
                     skip: SinonStub;
                 }
 
-                function newSuite(): Suite
+                function newSuite(title: string, parentContext?: Context): Suite
                 {
-                    const suite = new Suite('abc');
+                    const suite = new Suite(title, parentContext);
                     suite.timeout(timeout += 1000);
                     return suite;
                 }
@@ -244,7 +252,7 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.only.per(getTestParams());
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribeOnly,
                     bddDescribeOnly,
@@ -253,7 +261,7 @@ describe
                     bddDescribeSkip,
                 ];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -293,7 +301,7 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.skip.per(getTestParams());
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribeSkip,
                     bddDescribeSkip,
@@ -302,7 +310,7 @@ describe
                     bddDescribeSkip,
                 ];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -342,10 +350,10 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.when(true).per(getTestParams());
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -385,7 +393,7 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.when(false).per(getTestParams());
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribeSkip,
                     bddDescribeSkip,
@@ -394,7 +402,7 @@ describe
                     bddDescribeSkip,
                 ];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -404,7 +412,7 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).only;
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribeOnly,
                     bddDescribeOnly,
@@ -413,7 +421,7 @@ describe
                     bddDescribeSkip,
                 ];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -423,7 +431,7 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).skip;
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribeSkip,
                     bddDescribeSkip,
@@ -432,7 +440,7 @@ describe
                     bddDescribeSkip,
                 ];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -442,10 +450,10 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).when(true);
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -455,7 +463,7 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).when(false);
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribeSkip,
                     bddDescribeSkip,
@@ -464,7 +472,7 @@ describe
                     bddDescribeSkip,
                 ];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 
@@ -478,7 +486,7 @@ describe
                 .per({ 0: 3, 1: ebdd.only(7), 2: ebdd.skip(11), length: 3 })
                 .per(['potatoes', ebdd.only('tomatoes'), ebdd.skip('pizzas')]);
 
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribe,
                     bddDescribeOnly,
@@ -511,12 +519,71 @@ describe
                 assertBDDDescribesWithParams
                 (
                     ebddDescribeAny,
-                    bddDescribeAny,
+                    bddDescribeAnyList,
                     '#1 #2',
                     suiteCallback,
                     ([count, food]: readonly unknown[]) => `${count} ${food}`,
                     expectedParamsList,
                 );
+            },
+        );
+
+        it
+        (
+            'describe.adapt(...)',
+            () =>
+            {
+                const suiteCallback =
+                (): void =>
+                { };
+
+                const adaptParams = [42, 'foo', { }];
+                const adapter = spy();
+                const adaptedDescribe = ebdd.describe.adapt(adapter);
+                adaptedDescribe('some title', suiteCallback, ...adaptParams);
+                ok(!('adapt' in adaptedDescribe));
+                ok('only' in adaptedDescribe);
+                ok('per' in adaptedDescribe);
+                ok('skip' in adaptedDescribe);
+                ok('when' in adaptedDescribe);
+                ok(adapter.calledOnce);
+                const { lastCall } = adapter;
+                deepStrictEqual(lastCall.thisValue, bddDescribe.lastCall.returnValue);
+                deepStrictEqual(lastCall.args, adaptParams);
+            },
+        );
+
+        it
+        (
+            'describe.adapt(...).per([...])',
+            () =>
+            {
+                const suiteCallback =
+                (letter: string): void =>
+                { };
+
+                const adaptParams = [42, 'foo', { }];
+                const adapter = spy();
+                const adaptedDescribe = ebdd.describe.adapt(adapter);
+                adaptedDescribe.per(getTestParams())('some title', suiteCallback, ...adaptParams);
+                const bddDescribeAnyList =
+                [
+                    bddDescribe,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                    bddDescribe,
+                    bddDescribeSkip,
+                ];
+                const bddDescribeAnyCalls = getCallsInExpectedOrder(bddDescribeAnyList);
+                bddDescribeAnyCalls.forEach
+                (
+                    (bddDescribeAnyCall: SinonSpyCall, index: number): void =>
+                    {
+                        const adapterCall = adapter.getCall(index);
+                        deepStrictEqual(adapterCall.thisValue, bddDescribeAnyCall.returnValue);
+                    },
+                );
+                ok(adapter.alwaysCalledWithExactly(...adaptParams));
             },
         );
 
@@ -562,7 +629,7 @@ describe
             () =>
             {
                 const ebddDescribeAny = ebdd.xdescribe.per(getTestParams());
-                const bddDescribeAny =
+                const bddDescribeAnyList =
                 [
                     bddDescribeSkip,
                     bddDescribeSkip,
@@ -571,7 +638,7 @@ describe
                     bddDescribeSkip,
                 ];
 
-                assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
             },
         );
 

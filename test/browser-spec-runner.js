@@ -200,23 +200,47 @@
         return boundFn;
     }
     function createInterface(context) {
-        function createParameterizedSuiteFunction(baseParamLists, brand) {
+        function createAdaptableSuiteFunction() {
+            function adapt(adapter) {
+                var describe = createUnparameterizedSuiteFunction(Mode.NORMAL, Brand.NONE, adapter);
+                return describe;
+            }
+            var describe = createUnparameterizedSuiteFunction();
+            describe.adapt = adapt;
+            return describe;
+        }
+        function createAdaptableTestFunction() {
+            function adapt(adapter) {
+                var it = createUnparameterizedTestFunction(Mode.NORMAL, Brand.NONE, adapter);
+                return it;
+            }
+            var it = createUnparameterizedTestFunction();
+            it.adapt = adapt;
+            return it;
+        }
+        function createParameterizedSuiteFunction(baseParamLists, brand, adapter) {
             function skip(brand) {
-                var describe = createParameterizedSuiteFunction(skipAll(baseParamLists), brand);
+                var describe = createParameterizedSuiteFunction(skipAll(baseParamLists), brand, adapter);
                 return describe;
             }
             function stub(titlePattern, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitlePattern(titlePattern);
                 var paramCount = baseParamLists[0].length;
                 validateSuiteCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
                 var suites = Object.create(SpecItemArrayPrototype);
-                for (var _i = 0, baseParamLists_1 = baseParamLists; _i < baseParamLists_1.length; _i++) {
-                    var paramList = baseParamLists_1[_i];
+                for (var _a = 0, baseParamLists_1 = baseParamLists; _a < baseParamLists_1.length; _a++) {
+                    var paramList = baseParamLists_1[_a];
                     var createSuite = getCreateSuite(paramList.mode);
                     var title = titleFormatter(paramList);
                     var fnWrapper = bindArguments(fn, paramList);
                     var suite_1 = createSuite(title, fnWrapper);
+                    if (adapter)
+                        adapter.apply(suite_1, adaptParams);
                     suites.push(suite_1);
                 }
                 return suites;
@@ -224,31 +248,37 @@
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
-                    var describe = createParameterizedSuiteFunction(paramLists, brand);
+                    var describe = createParameterizedSuiteFunction(paramLists, brand, adapter);
                     return describe;
                 };
             stub.when =
                 function (condition) {
                     return condition ? describe : skip(brand);
                 };
-            var describe = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
-                return createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
+            var describe = makeParameterizableFunction(stub, function () {
+                return skip(Brand.SKIP_OR_ONLY);
+            }, function () {
+                return createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return describe;
         }
-        function createParameterizedTestFunction(baseParamLists, brand) {
+        function createParameterizedTestFunction(baseParamLists, brand, adapter) {
             function skip(brand) {
-                var it = createParameterizedTestFunction(skipAll(baseParamLists), brand);
+                var it = createParameterizedTestFunction(skipAll(baseParamLists), brand, adapter);
                 return it;
             }
             function stub(titlePattern, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitlePattern(titlePattern);
                 var paramCount = baseParamLists[0].length;
                 validateTestCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
                 var tests = Object.create(SpecItemArrayPrototype);
-                for (var _i = 0, baseParamLists_2 = baseParamLists; _i < baseParamLists_2.length; _i++) {
-                    var paramList = baseParamLists_2[_i];
+                for (var _a = 0, baseParamLists_2 = baseParamLists; _a < baseParamLists_2.length; _a++) {
+                    var paramList = baseParamLists_2[_a];
                     var createTest = getCreateTest(paramList.mode);
                     var title = titleFormatter(paramList);
                     var fnWrapper = void 0;
@@ -259,6 +289,8 @@
                         fnWrapper = bindArgumentsButLast(fn, paramList);
                     }
                     var test_1 = createTest(title, fnWrapper);
+                    if (adapter)
+                        adapter.apply(test_1, adaptParams);
                     tests.push(test_1);
                 }
                 return tests;
@@ -266,69 +298,83 @@
             stub.per =
                 function (params) {
                     var paramLists = multiplyParams(params, baseParamLists);
-                    var it = createParameterizedTestFunction(paramLists, brand);
+                    var it = createParameterizedTestFunction(paramLists, brand, adapter);
                     return it;
                 };
             stub.when =
                 function (condition) {
                     return condition ? it : skip(brand);
                 };
-            var it = makeParameterizableFunction(stub, function () { return skip(Brand.SKIP_OR_ONLY); }, function () {
-                return createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY);
+            var it = makeParameterizableFunction(stub, function () {
+                return skip(Brand.SKIP_OR_ONLY);
+            }, function () {
+                return createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return it;
         }
-        function createUnparameterizedSuiteFunction(baseMode, brand) {
+        function createUnparameterizedSuiteFunction(baseMode, brand, adapter) {
             if (baseMode === void 0) { baseMode = Mode.NORMAL; }
             if (brand === void 0) { brand = Brand.NONE; }
             function stub(title, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitle(title);
                 validateSuiteCallback(fn, 0);
                 var createSuite = getCreateSuite(baseMode);
                 var suite = createSuite(title, fn);
+                if (adapter)
+                    adapter.apply(suite, adaptParams);
                 return suite;
             }
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
-                    var describe = createParameterizedSuiteFunction(paramLists, brand);
+                    var describe = createParameterizedSuiteFunction(paramLists, brand, adapter);
                     return describe;
                 };
             stub.when =
                 function (condition) {
-                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
+                    return condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand, adapter);
                 };
             var describe = makeParameterizableFunction(stub, function () {
-                return createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
+                return createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY, adapter);
             }, function () {
-                return createUnparameterizedSuiteFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY);
+                return createUnparameterizedSuiteFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return describe;
         }
-        function createUnparameterizedTestFunction(baseMode, brand) {
+        function createUnparameterizedTestFunction(baseMode, brand, adapter) {
             if (baseMode === void 0) { baseMode = Mode.NORMAL; }
             if (brand === void 0) { brand = Brand.NONE; }
             function stub(title, fn) {
+                var adaptParams = [];
+                for (var _i = 2; _i < arguments.length; _i++) {
+                    adaptParams[_i - 2] = arguments[_i];
+                }
                 validateTitle(title);
                 validateTestCallback(fn, 0);
                 var createTest = getCreateTest(baseMode);
                 var test = createTest(title, fn);
+                if (adapter)
+                    adapter.apply(test, adaptParams);
                 return test;
             }
             stub.per =
                 function (params) {
                     var paramLists = createParamLists(params, baseMode);
-                    var it = createParameterizedTestFunction(paramLists, brand);
+                    var it = createParameterizedTestFunction(paramLists, brand, adapter);
                     return it;
                 };
             stub.when =
                 function (condition) {
-                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
+                    return condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand, adapter);
                 };
             var it = makeParameterizableFunction(stub, function () {
-                return createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY);
+                return createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY, adapter);
             }, function () {
-                return createUnparameterizedTestFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY);
+                return createUnparameterizedTestFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY, adapter);
             }, brand);
             return it;
         }
@@ -355,11 +401,11 @@
         var _a = context, bddDescribe = _a.describe, bddIt = _a.it;
         var bddXit = function (title) { return bddIt(title); };
         context.describe = context.context =
-            createUnparameterizedSuiteFunction();
+            createAdaptableSuiteFunction();
         context.xdescribe = context.xcontext =
             createUnparameterizedSuiteFunction(Mode.SKIP, Brand.XDESCRIBE);
         context.it = context.specify =
-            createUnparameterizedTestFunction();
+            createAdaptableTestFunction();
         context.xit = context.xspecify =
             createUnparameterizedTestFunction(Mode.SKIP, Brand.XIT);
         context.only =
@@ -3322,28 +3368,20 @@
             deepStrictEqual(firstCall.args, [title, fn]);
             strictEqual(actual, firstCall.returnValue);
         }
-        function assertBDDDescribes(ebddDescribeAny, bddDescribeAny) {
+        function assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList) {
             var suiteCallback = function (letter) { };
-            assertBDDDescribesWithParams(ebddDescribeAny, bddDescribeAny, '"#" is good', suiteCallback, function (_a) {
+            assertBDDDescribesWithParams(ebddDescribeAny, bddDescribeAnyList, '"#" is good', suiteCallback, function (_a) {
                 var letter = _a[0];
                 return "\"" + letter + "\" is good";
             }, [['A'], ['B'], ['C'], ['D'], ['E']]);
         }
-        function assertBDDDescribesWithParams(ebddDescribeAny, bddDescribeAny, titlePattern, suiteCallback, getExpectedTitle, expectedParamsList) {
+        function assertBDDDescribesWithParams(ebddDescribeAny, bddDescribeAnyList, titlePattern, suiteCallback, getExpectedTitle, expectedParamsList) {
             var suiteCallbackSpy = sinon.spy(suiteCallback);
             var actualDescribeReturnValue = ebddDescribeAny(titlePattern, suiteCallbackSpy);
             var uniqueBDDDescribeAny = [];
-            var spyCalls = bddDescribeAny.map(function (bddDescribeAny) {
-                var _a;
-                if (uniqueBDDDescribeAny.indexOf(bddDescribeAny) < 0)
-                    uniqueBDDDescribeAny.push(bddDescribeAny);
-                var nextCallIndex = (_a = bddDescribeAny.nextCallIndex) !== null && _a !== void 0 ? _a : 0;
-                bddDescribeAny.nextCallIndex = nextCallIndex + 1;
-                var spyCall = bddDescribeAny.getCall(nextCallIndex);
-                return spyCall;
-            });
+            var bddDescribeAnyCalls = getCallsInExpectedOrder(bddDescribeAnyList, uniqueBDDDescribeAny);
             // describe callback order
-            spyCalls.reduce(function (previousSpy, currentSpy) {
+            bddDescribeAnyCalls.reduce(function (previousSpy, currentSpy) {
                 ok(currentSpy.calledImmediatelyAfter(previousSpy));
                 return currentSpy;
             });
@@ -3352,14 +3390,14 @@
                 strictEqual(bddDescribeAny.callCount, bddDescribeAny.nextCallIndex);
             });
             // Suite titles
-            spyCalls.forEach(function (_a, index) {
+            bddDescribeAnyCalls.forEach(function (_a, index) {
                 var actualTitle = _a.args[0];
                 var expectedParams = expectedParamsList[index];
                 var expectedTitle = getExpectedTitle(expectedParams);
                 strictEqual(actualTitle, expectedTitle);
             });
             // Suite callback functions calls
-            spyCalls.forEach(function (_a, index) {
+            bddDescribeAnyCalls.forEach(function (_a, index) {
                 var _b = _a.args, actualSuiteCallback = _b[1];
                 suiteCallbackSpy.resetHistory();
                 var expectedThis = {};
@@ -3370,12 +3408,12 @@
             });
             // Return value
             ok(isArrayBased(actualDescribeReturnValue));
-            deepStrictEqual(__spreadArrays$1(actualDescribeReturnValue), spyCalls.map(function (_a) {
+            deepStrictEqual(__spreadArrays$1(actualDescribeReturnValue), bddDescribeAnyCalls.map(function (_a) {
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
             // Return value timeout
-            var suiteCount = bddDescribeAny.length;
+            var suiteCount = bddDescribeAnyList.length;
             var expectedTimeout = (suiteCount + 1) * 500;
             deepStrictEqual(actualDescribeReturnValue.timeout(), expectedTimeout);
             var timeout = 42;
@@ -3384,6 +3422,19 @@
                 var suite_1 = actualDescribeReturnValue_1[_i];
                 deepStrictEqual(suite_1.timeout(), timeout);
             }
+        }
+        function getCallsInExpectedOrder(bddDescribeAnyList, uniqueBDDDescribeAny) {
+            if (uniqueBDDDescribeAny === void 0) { uniqueBDDDescribeAny = []; }
+            var bddDescribeAnyCalls = bddDescribeAnyList.map(function (bddDescribeAny) {
+                var _a;
+                if (uniqueBDDDescribeAny.indexOf(bddDescribeAny) < 0)
+                    uniqueBDDDescribeAny.push(bddDescribeAny);
+                var nextCallIndex = (_a = bddDescribeAny.nextCallIndex) !== null && _a !== void 0 ? _a : 0;
+                bddDescribeAny.nextCallIndex = nextCallIndex + 1;
+                var spyCall = bddDescribeAny.getCall(nextCallIndex);
+                return spyCall;
+            });
+            return bddDescribeAnyCalls;
         }
         function getTestParams() {
             var params = [
@@ -3400,8 +3451,8 @@
         var bddDescribeSkip;
         var ebdd;
         beforeEach(function () {
-            function newSuite() {
-                var suite = new mocha$1.Suite('abc');
+            function newSuite(title, parentContext) {
+                var suite = new mocha$1.Suite(title, parentContext);
                 suite.timeout(timeout += 1000);
                 return suite;
             }
@@ -3426,14 +3477,14 @@
         it('describe.only.when(false)', function () { return assertBDDDescribe(ebdd.describe.only.when(false), bddDescribeSkip); });
         it('describe.only.per([...])', function () {
             var ebddDescribeAny = ebdd.describe.only.per(getTestParams());
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribeOnly,
                 bddDescribeOnly,
                 bddDescribeSkip,
                 bddDescribeOnly,
                 bddDescribeSkip,
             ];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.skip', function () { return assertBDDDescribe(ebdd.describe.skip, bddDescribeSkip); });
         it('describe.skip.only', function () { return throws(function () { return void ebdd.describe.skip.only; }, Error); });
@@ -3442,14 +3493,14 @@
         it('describe.skip.when(false)', function () { return assertBDDDescribe(ebdd.describe.skip.when(false), bddDescribeSkip); });
         it('describe.skip.per([...])', function () {
             var ebddDescribeAny = ebdd.describe.skip.per(getTestParams());
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
             ];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.when(true)', function () { return assertBDDDescribe(ebdd.describe.when(true), bddDescribe); });
         it('describe.when(true).only', function () { return assertBDDDescribe(ebdd.describe.when(true).only, bddDescribeOnly); });
@@ -3458,8 +3509,8 @@
         it('describe.when(true).when(false)', function () { return assertBDDDescribe(ebdd.describe.when(true).when(false), bddDescribeSkip); });
         it('describe.when(true).per([...])', function () {
             var ebddDescribeAny = ebdd.describe.when(true).per(getTestParams());
-            var bddDescribeAny = [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            var bddDescribeAnyList = [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.when(false)', function () { return assertBDDDescribe(ebdd.describe.when(false), bddDescribeSkip); });
         it('describe.when(false).only', function () { return assertBDDDescribe(ebdd.describe.when(false).only, bddDescribeSkip); });
@@ -3468,58 +3519,58 @@
         it('describe.when(false).when(false)', function () { return assertBDDDescribe(ebdd.describe.when(false).when(false), bddDescribeSkip); });
         it('describe.when(false).per([...])', function () {
             var ebddDescribeAny = ebdd.describe.when(false).per(getTestParams());
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
             ];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.per([...]).only', function () {
             var ebddDescribeAny = ebdd.describe.per(getTestParams()).only;
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribeOnly,
                 bddDescribeOnly,
                 bddDescribeSkip,
                 bddDescribeOnly,
                 bddDescribeSkip,
             ];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.per([...]).skip', function () {
             var ebddDescribeAny = ebdd.describe.per(getTestParams()).skip;
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
             ];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.per([...]).when(true)', function () {
             var ebddDescribeAny = ebdd.describe.per(getTestParams()).when(true);
-            var bddDescribeAny = [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            var bddDescribeAnyList = [bddDescribe, bddDescribeOnly, bddDescribeSkip, bddDescribe, bddDescribeSkip];
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.per([...]).when(false)', function () {
             var ebddDescribeAny = ebdd.describe.per(getTestParams()).when(false);
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
             ];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('describe.per([...]).per([...])', function () {
             var ebddDescribeAny = ebdd.describe
                 .per({ 0: 3, 1: ebdd.only(7), 2: ebdd.skip(11), length: 3 })
                 .per(['potatoes', ebdd.only('tomatoes'), ebdd.skip('pizzas')]);
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribe,
                 bddDescribeOnly,
                 bddDescribeSkip,
@@ -3542,10 +3593,46 @@
                 [11, 'pizzas'],
             ];
             var suiteCallback = function (count, food) { };
-            assertBDDDescribesWithParams(ebddDescribeAny, bddDescribeAny, '#1 #2', suiteCallback, function (_a) {
+            assertBDDDescribesWithParams(ebddDescribeAny, bddDescribeAnyList, '#1 #2', suiteCallback, function (_a) {
                 var count = _a[0], food = _a[1];
                 return count + " " + food;
             }, expectedParamsList);
+        });
+        it('describe.adapt(...)', function () {
+            var suiteCallback = function () { };
+            var adaptParams = [42, 'foo', {}];
+            var adapter = sinon.spy();
+            var adaptedDescribe = ebdd.describe.adapt(adapter);
+            adaptedDescribe.apply(void 0, __spreadArrays$1(['some title', suiteCallback], adaptParams));
+            ok(!('adapt' in adaptedDescribe));
+            ok('only' in adaptedDescribe);
+            ok('per' in adaptedDescribe);
+            ok('skip' in adaptedDescribe);
+            ok('when' in adaptedDescribe);
+            ok(adapter.calledOnce);
+            var lastCall = adapter.lastCall;
+            deepStrictEqual(lastCall.thisValue, bddDescribe.lastCall.returnValue);
+            deepStrictEqual(lastCall.args, adaptParams);
+        });
+        it('describe.adapt(...).per([...])', function () {
+            var suiteCallback = function (letter) { };
+            var adaptParams = [42, 'foo', {}];
+            var adapter = sinon.spy();
+            var adaptedDescribe = ebdd.describe.adapt(adapter);
+            adaptedDescribe.per(getTestParams()).apply(void 0, __spreadArrays$1(['some title', suiteCallback], adaptParams));
+            var bddDescribeAnyList = [
+                bddDescribe,
+                bddDescribeOnly,
+                bddDescribeSkip,
+                bddDescribe,
+                bddDescribeSkip,
+            ];
+            var bddDescribeAnyCalls = getCallsInExpectedOrder(bddDescribeAnyList);
+            bddDescribeAnyCalls.forEach(function (bddDescribeAnyCall, index) {
+                var adapterCall = adapter.getCall(index);
+                deepStrictEqual(adapterCall.thisValue, bddDescribeAnyCall.returnValue);
+            });
+            ok(adapter.alwaysCalledWithExactly.apply(adapter, adaptParams));
         });
         it('context', function () { return strictEqual(ebdd.context, ebdd.describe); });
         it('xdescribe', function () { return assertBDDDescribe(ebdd.xdescribe, bddDescribeSkip); });
@@ -3555,14 +3642,14 @@
         it('xdescribe.when(false)', function () { return assertBDDDescribe(ebdd.xdescribe.when(false), bddDescribeSkip); });
         it('xdescribe.per([...])', function () {
             var ebddDescribeAny = ebdd.xdescribe.per(getTestParams());
-            var bddDescribeAny = [
+            var bddDescribeAnyList = [
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
                 bddDescribeSkip,
             ];
-            assertBDDDescribes(ebddDescribeAny, bddDescribeAny);
+            assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
         });
         it('xcontext', function () { return strictEqual(ebdd.xcontext, ebdd.xdescribe); });
         it('unparameterized describe with undefined title', function () {
@@ -3651,18 +3738,9 @@
             var testCallbackSpy = sinon.spy(testCallback);
             var actualItReturnValue = ebddItAny(titlePattern, testCallbackSpy);
             var uniqueBDDItAny = [];
-            var spyCalls = bddCallDataList.map(function (bddCallData) {
-                var _a;
-                var it = bddCallData.it;
-                if (uniqueBDDItAny.indexOf(it) < 0)
-                    uniqueBDDItAny.push(it);
-                var nextCallIndex = (_a = it.nextCallIndex) !== null && _a !== void 0 ? _a : 0;
-                it.nextCallIndex = nextCallIndex + 1;
-                var spyCall = it.getCall(nextCallIndex);
-                return spyCall;
-            });
+            var bddItAnyCalls = getCallsInExpectedOrder(bddCallDataList, uniqueBDDItAny);
             // it callback order
-            spyCalls.reduce(function (previousSpy, currentSpy) {
+            bddItAnyCalls.reduce(function (previousSpy, currentSpy) {
                 ok(currentSpy.calledImmediatelyAfter(previousSpy));
                 return currentSpy;
             });
@@ -3671,14 +3749,14 @@
                 strictEqual(it.callCount, it.nextCallIndex);
             });
             // Test titles
-            spyCalls.forEach(function (_a, index) {
+            bddItAnyCalls.forEach(function (_a, index) {
                 var actualTitle = _a.args[0];
                 var expectedParams = expectedParamsList[index];
                 var expectedTitle = getExpectedTitle(expectedParams);
                 strictEqual(actualTitle, expectedTitle);
             });
             // Test callback functions calls
-            spyCalls.forEach(function (_a, index) {
+            bddItAnyCalls.forEach(function (_a, index) {
                 var _b;
                 var _c = _a.args, actualTestCallback = _c[1];
                 deepStrictEqual(typeof actualTestCallback, bddCallDataList[index].useFn ? 'function' : 'undefined');
@@ -3693,7 +3771,7 @@
             });
             // Return value
             ok(isArrayBased(actualItReturnValue));
-            deepStrictEqual(__spreadArrays$2(actualItReturnValue), spyCalls.map(function (_a) {
+            deepStrictEqual(__spreadArrays$2(actualItReturnValue), bddItAnyCalls.map(function (_a) {
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
@@ -3705,6 +3783,20 @@
                 var test_1 = actualItReturnValue_1[_i];
                 deepStrictEqual(test_1.timeout(), timeout);
             }
+        }
+        function getCallsInExpectedOrder(bddCallDataList, uniqueBDDItAny) {
+            if (uniqueBDDItAny === void 0) { uniqueBDDItAny = []; }
+            var bddItAnyCalls = bddCallDataList.map(function (bddCallData) {
+                var _a;
+                var bddItAny = bddCallData.it;
+                if (uniqueBDDItAny.indexOf(bddItAny) < 0)
+                    uniqueBDDItAny.push(bddItAny);
+                var nextCallIndex = (_a = bddItAny.nextCallIndex) !== null && _a !== void 0 ? _a : 0;
+                bddItAny.nextCallIndex = nextCallIndex + 1;
+                var spyCall = bddItAny.getCall(nextCallIndex);
+                return spyCall;
+            });
+            return bddItAnyCalls;
         }
         function getTestParams() {
             var params = [
@@ -3721,8 +3813,8 @@
         var bddItSkip;
         var ebdd;
         beforeEach(function () {
-            function newTest() {
-                var test = new mocha$1.Test('abc');
+            function newTest(title, fn) {
+                var test = new mocha$1.Test(title, fn);
                 test.timeout(timeout += 1000);
                 return test;
             }
@@ -3833,6 +3925,36 @@
                 var count = _a[0], food = _a[1];
                 return count + " " + food;
             }, expectedParamsList, [], 5000);
+        });
+        it('it.adapt(...)', function () {
+            var testCallback = function () { };
+            var adaptParams = [42, 'foo', {}];
+            var adapter = sinon.spy();
+            var adaptedIt = ebdd.it.adapt(adapter);
+            adaptedIt.apply(void 0, __spreadArrays$2(['some title', testCallback], adaptParams));
+            ok(!('adapt' in adaptedIt));
+            ok('only' in adaptedIt);
+            ok('per' in adaptedIt);
+            ok('skip' in adaptedIt);
+            ok('when' in adaptedIt);
+            ok(adapter.calledOnce);
+            var lastCall = adapter.lastCall;
+            deepStrictEqual(lastCall.thisValue, bddIt.it.lastCall.returnValue);
+            deepStrictEqual(lastCall.args, adaptParams);
+        });
+        it('it.adapt(...).per([...])', function () {
+            var testCallback = function (letter) { };
+            var adaptParams = [42, 'foo', {}];
+            var adapter = sinon.spy();
+            var adaptedIt = ebdd.it.adapt(adapter);
+            adaptedIt.per(getTestParams()).apply(void 0, __spreadArrays$2(['some title', testCallback], adaptParams));
+            var bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
+            var bddItAnyCalls = getCallsInExpectedOrder(bddCallDataList);
+            bddItAnyCalls.forEach(function (bddItAnyCall, index) {
+                var adapterCall = adapter.getCall(index);
+                deepStrictEqual(adapterCall.thisValue, bddItAnyCall.returnValue);
+            });
+            ok(adapter.alwaysCalledWithExactly.apply(adapter, adaptParams));
         });
         it('specify', function () { return strictEqual(ebdd.specify, ebdd.it); });
         it('xit', function () { return assertBDDIt(ebdd.xit, bddItSkip); });

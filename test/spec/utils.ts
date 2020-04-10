@@ -1,3 +1,11 @@
+import { SinonStub } from 'sinon';
+
+export interface CallCountingStub<TArgs extends any[] = any[], TReturnValue = any>
+extends SinonStub<TArgs, TReturnValue>
+{
+    nextCallIndex?: number;
+}
+
 export function isArrayBased(array: unknown[]): boolean
 {
     if (!(array instanceof Array))

@@ -8,9 +8,9 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
-import { isArrayBased }                                             from './utils';
+import { CallCountingStub, isArrayBased }                           from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
-import { Done, Test }                                               from 'mocha';
+import { AsyncFunc, Done, Func, Test }                              from 'mocha';
 import { SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }    from 'sinon';
 
 describe
@@ -52,7 +52,7 @@ describe
 
         function assertBDDIts<ParamListType extends unknown[]>
         (
-            ebddItAny: ParameterizedTestFunction<ParamListType>,
+            ebddItAny: ParameterizedTestFunction<ParamListType, []>,
             bddCallDataList: readonly BDDCallData[],
         ):
         void
@@ -96,7 +96,7 @@ describe
 
         function assertBDDItsWithParams<ParamListType extends unknown[]>
         (
-            ebddItAny:          ParameterizedTestFunction<ParamListType>,
+            ebddItAny:          ParameterizedTestFunction<ParamListType, []>,
             bddCallDataList:    readonly BDDCallData[],
             titlePattern:       string,
             testCallback:       (...args: any) => void,
@@ -107,31 +107,13 @@ describe
         ):
         void
         {
-            interface CallCountingStub extends SinonStub
-            {
-                nextCallIndex?: number;
-            }
-
             const testCallbackSpy = spy(testCallback);
             const actualItReturnValue = ebddItAny(titlePattern, testCallbackSpy);
             const uniqueBDDItAny: CallCountingStub[] = [];
-            const spyCalls =
-            bddCallDataList.map
-            (
-                (bddCallData: BDDCallData): SinonSpyCall =>
-                {
-                    const { it }: { it: CallCountingStub; } = bddCallData;
-                    if (uniqueBDDItAny.indexOf(it) < 0)
-                        uniqueBDDItAny.push(it);
-                    const nextCallIndex = it.nextCallIndex ?? 0;
-                    it.nextCallIndex = nextCallIndex + 1;
-                    const spyCall = it.getCall(nextCallIndex);
-                    return spyCall;
-                },
-            );
+            const bddItAnyCalls = getCallsInExpectedOrder(bddCallDataList, uniqueBDDItAny);
 
             // it callback order
-            (spyCalls as unknown as SinonSpy[]).reduce
+            (bddItAnyCalls as unknown as SinonSpy[]).reduce
             (
                 (previousSpy: SinonSpy, currentSpy: SinonSpy) =>
                 {
@@ -150,7 +132,7 @@ describe
             );
 
             // Test titles
-            spyCalls.forEach
+            bddItAnyCalls.forEach
             (
                 ({ args: [actualTitle] }: SinonSpyCall, index: number) =>
                 {
@@ -161,7 +143,7 @@ describe
             );
 
             // Test callback functions calls
-            spyCalls.forEach
+            bddItAnyCalls.forEach
             (
                 ({ args: [, actualTestCallback] }: SinonSpyCall, index: number): void =>
                 {
@@ -188,7 +170,7 @@ describe
             deepStrictEqual
             (
                 [...actualItReturnValue],
-                spyCalls.map(({ returnValue }: SinonSpyCall) => returnValue),
+                bddItAnyCalls.map(({ returnValue }: SinonSpyCall<any[], Test>) => returnValue),
             );
 
             // Return value timeout
@@ -197,6 +179,27 @@ describe
             actualItReturnValue.timeout(timeout);
             for (const test of actualItReturnValue)
                 deepStrictEqual(test.timeout(), timeout);
+        }
+
+        function getCallsInExpectedOrder
+        (bddCallDataList: readonly BDDCallData[], uniqueBDDItAny: CallCountingStub[] = []):
+        SinonSpyCall[]
+        {
+            const bddItAnyCalls =
+            bddCallDataList.map
+            (
+                (bddCallData: BDDCallData): SinonSpyCall =>
+                {
+                    const bddItAny: CallCountingStub = bddCallData.it;
+                    if (uniqueBDDItAny.indexOf(bddItAny) < 0)
+                        uniqueBDDItAny.push(bddItAny);
+                    const nextCallIndex = bddItAny.nextCallIndex ?? 0;
+                    bddItAny.nextCallIndex = nextCallIndex + 1;
+                    const spyCall = bddItAny.getCall(nextCallIndex);
+                    return spyCall;
+                },
+            );
+            return bddItAnyCalls;
         }
 
         function getTestParams(): ParamArrayLike<string>
@@ -226,9 +229,9 @@ describe
                     only: SinonStub;
                 }
 
-                function newTest(): Test
+                function newTest(title: string, fn: AsyncFunc | Func | undefined): Test
                 {
-                    const test = new Test('abc');
+                    const test = new Test(title, fn);
                     test.timeout(timeout += 1000);
                     return test;
                 }
@@ -527,6 +530,58 @@ describe
                     [],
                     5000,
                 );
+            },
+        );
+
+        it
+        (
+            'it.adapt(...)',
+            () =>
+            {
+                const testCallback =
+                (): void =>
+                { };
+
+                const adaptParams = [42, 'foo', { }];
+                const adapter = spy();
+                const adaptedIt = ebdd.it.adapt(adapter);
+                adaptedIt('some title', testCallback, ...adaptParams);
+                ok(!('adapt' in adaptedIt));
+                ok('only' in adaptedIt);
+                ok('per' in adaptedIt);
+                ok('skip' in adaptedIt);
+                ok('when' in adaptedIt);
+                ok(adapter.calledOnce);
+                const { lastCall } = adapter;
+                deepStrictEqual(lastCall.thisValue, bddIt.it.lastCall.returnValue);
+                deepStrictEqual(lastCall.args, adaptParams);
+            },
+        );
+
+        it
+        (
+            'it.adapt(...).per([...])',
+            () =>
+            {
+                const testCallback =
+                (letter: string): void =>
+                { };
+
+                const adaptParams = [42, 'foo', { }];
+                const adapter = spy();
+                const adaptedIt = ebdd.it.adapt(adapter);
+                adaptedIt.per(getTestParams())('some title', testCallback, ...adaptParams);
+                const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
+                const bddItAnyCalls = getCallsInExpectedOrder(bddCallDataList);
+                bddItAnyCalls.forEach
+                (
+                    (bddItAnyCall: SinonSpyCall, index: number): void =>
+                    {
+                        const adapterCall = adapter.getCall(index);
+                        deepStrictEqual(adapterCall.thisValue, bddItAnyCall.returnValue);
+                    },
+                );
+                ok(adapter.alwaysCalledWithExactly(...adaptParams));
             },
         );
 
