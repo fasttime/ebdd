@@ -541,11 +541,11 @@ describe
                 const testCallback =
                 (): void =>
                 { };
-
                 const adaptParams = [42, 'foo', { }];
                 const adapter = spy();
                 const adaptedIt = ebdd.it.adapt(adapter);
                 adaptedIt('some title', testCallback, ...adaptParams);
+
                 ok(!('adapt' in adaptedIt));
                 ok('only' in adaptedIt);
                 ok('per' in adaptedIt);
@@ -566,13 +566,13 @@ describe
                 const testCallback =
                 (letter: string): void =>
                 { };
-
                 const adaptParams = [42, 'foo', { }];
                 const adapter = spy();
                 const adaptedIt = ebdd.it.adapt(adapter);
                 adaptedIt.per(getTestParams())('some title', testCallback, ...adaptParams);
                 const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
                 const bddItAnyCalls = getCallsInExpectedOrder(bddCallDataList);
+
                 bddItAnyCalls.forEach
                 (
                     (bddItAnyCall: SinonSpyCall, index: number): void =>
@@ -583,6 +583,18 @@ describe
                 );
                 ok(adapter.alwaysCalledWithExactly(...adaptParams));
             },
+        );
+
+        it
+        (
+            'it.adapt with undefined adapter function',
+            () => throws(() => ebdd.it.adapt(undefined as any), TypeError),
+        );
+
+        it
+        (
+            'it.adapt with invalid adapter function',
+            () => throws(() => ebdd.it.adapt({ } as any), TypeError),
         );
 
         it

@@ -134,10 +134,7 @@ describe
         }
 
         function getCallsInExpectedOrder
-        (
-            bddDescribeAnyList: readonly SinonStub[],
-            uniqueBDDDescribeAny: CallCountingStub[] = [],
-        ):
+        (bddDescribeAnyList: readonly SinonStub[], uniqueBDDDescribeAny: CallCountingStub[] = []):
         SinonSpyCall[]
         {
             const bddDescribeAnyCalls =
@@ -536,11 +533,11 @@ describe
                 const suiteCallback =
                 (): void =>
                 { };
-
                 const adaptParams = [42, 'foo', { }];
                 const adapter = spy();
                 const adaptedDescribe = ebdd.describe.adapt(adapter);
                 adaptedDescribe('some title', suiteCallback, ...adaptParams);
+
                 ok(!('adapt' in adaptedDescribe));
                 ok('only' in adaptedDescribe);
                 ok('per' in adaptedDescribe);
@@ -561,7 +558,6 @@ describe
                 const suiteCallback =
                 (letter: string): void =>
                 { };
-
                 const adaptParams = [42, 'foo', { }];
                 const adapter = spy();
                 const adaptedDescribe = ebdd.describe.adapt(adapter);
@@ -575,6 +571,7 @@ describe
                     bddDescribeSkip,
                 ];
                 const bddDescribeAnyCalls = getCallsInExpectedOrder(bddDescribeAnyList);
+
                 bddDescribeAnyCalls.forEach
                 (
                     (bddDescribeAnyCall: SinonSpyCall, index: number): void =>
@@ -585,6 +582,18 @@ describe
                 );
                 ok(adapter.alwaysCalledWithExactly(...adaptParams));
             },
+        );
+
+        it
+        (
+            'describe.adapt with undefined adapter function',
+            () => throws(() => ebdd.describe.adapt(undefined as any), TypeError),
+        );
+
+        it
+        (
+            'describe.adapt with invalid adapter function',
+            () => throws(() => ebdd.describe.adapt({ } as any), TypeError),
         );
 
         it

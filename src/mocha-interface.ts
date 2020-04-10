@@ -237,6 +237,7 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
         (adapter: SuiteAdapter<AdaptParamListType>):
         UnparameterizedSuiteFunction<AdaptParamListType>
         {
+            validateAdapter(adapter);
             const describe = createUnparameterizedSuiteFunction(Mode.NORMAL, Brand.NONE, adapter);
             return describe;
         }
@@ -253,6 +254,7 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
         (adapter: TestAdapter<AdaptParamListType>):
         UnparameterizedTestFunction<AdaptParamListType>
         {
+            validateAdapter(adapter);
             const it = createUnparameterizedTestFunction(Mode.NORMAL, Brand.NONE, adapter);
             return it;
         }
@@ -266,8 +268,8 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
     <ParamListType extends unknown[], AdaptParamListType extends unknown[]>
     (
         baseParamLists: readonly ParamList<ParamListType>[],
-        brand: Brand,
-        adapter: SuiteAdapter<AdaptParamListType> | undefined,
+        brand:          Brand,
+        adapter:        SuiteAdapter<AdaptParamListType> | undefined,
     ):
     ParameterizedSuiteFunction<ParamListType, AdaptParamListType>
     {
@@ -280,8 +282,8 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
 
         function stub
         (
-            titlePattern: string,
-            fn: SuiteCallback<ParamListType>,
+            titlePattern:   string,
+            fn:             SuiteCallback<ParamListType>,
             ...adaptParams: AdaptParamListType
         ):
         SpecItemArray<Suite>
@@ -335,8 +337,8 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
     <ParamListType extends unknown[], AdaptParamListType extends unknown[]>
     (
         baseParamLists: readonly ParamList<ParamListType>[],
-        brand: Brand,
-        adapter: TestAdapter<AdaptParamListType> | undefined,
+        brand:          Brand,
+        adapter:        TestAdapter<AdaptParamListType> | undefined,
     ):
     ParameterizedTestFunction<ParamListType, AdaptParamListType>
     {
@@ -410,9 +412,9 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
     function createUnparameterizedSuiteFunction
     <AdaptParamListType extends unknown[]>
     (
-        baseMode: Mode = Mode.NORMAL,
-        brand: Brand = Brand.NONE,
-        adapter?: SuiteAdapter<AdaptParamListType>,
+        baseMode:   Mode = Mode.NORMAL,
+        brand:      Brand = Brand.NONE,
+        adapter?:   SuiteAdapter<AdaptParamListType>,
     ):
     UnparameterizedSuiteFunction<AdaptParamListType>
     {
@@ -458,9 +460,9 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
     function createUnparameterizedTestFunction
     <AdaptParamListType extends unknown[]>
     (
-        baseMode: Mode = Mode.NORMAL,
-        brand: Brand = Brand.NONE,
-        adapter?: TestAdapter<AdaptParamListType>,
+        baseMode:   Mode = Mode.NORMAL,
+        brand:      Brand = Brand.NONE,
+        adapter?:   TestAdapter<AdaptParamListType>,
     ):
     UnparameterizedTestFunction<AdaptParamListType>
     {
@@ -722,6 +724,15 @@ function skipAll
         },
     );
     return paramLists;
+}
+
+function validateAdapter(adapter: Function): void
+{
+    if (typeof adapter !== 'function')
+    {
+        const message = 'Argument `adapter` is not a function.';
+        throw TypeError(message);
+    }
 }
 
 function validateSuiteCallback(fn: Function, expectedLength: number): void

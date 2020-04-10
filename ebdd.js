@@ -197,6 +197,7 @@
     function createInterface(context) {
         function createAdaptableSuiteFunction() {
             function adapt(adapter) {
+                validateAdapter(adapter);
                 var describe = createUnparameterizedSuiteFunction(Mode.NORMAL, Brand.NONE, adapter);
                 return describe;
             }
@@ -206,6 +207,7 @@
         }
         function createAdaptableTestFunction() {
             function adapt(adapter) {
+                validateAdapter(adapter);
                 var it = createUnparameterizedTestFunction(Mode.NORMAL, Brand.NONE, adapter);
                 return it;
             }
@@ -518,6 +520,12 @@
             return paramList;
         });
         return paramLists;
+    }
+    function validateAdapter(adapter) {
+        if (typeof adapter !== 'function') {
+            var message = 'Argument `adapter` is not a function.';
+            throw TypeError(message);
+        }
     }
     function validateSuiteCallback(fn, expectedLength) {
         if (typeof fn !== 'function') {
