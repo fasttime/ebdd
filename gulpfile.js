@@ -9,7 +9,8 @@ task
     {
         const { promises: { rmdir } } = require('fs');
 
-        const paths = ['.tmp-src', 'coverage', 'ebdd.js', 'test/browser-spec-runner.js'];
+        const paths =
+        ['.nyc_output', '.tmp-src', 'coverage', 'ebdd.js', 'test/browser-spec-runner.js'];
         const options = { recursive: true };
         await Promise.all(paths.map(path => rmdir(path, options)));
     },
@@ -50,7 +51,7 @@ task
         const { fork } = require('child_process');
 
         const { resolve } = require;
-        const c8 = resolve('c8/bin/c8');
+        const nycPath = resolve('nyc/bin/nyc');
         const mochaPath = resolve('mocha/bin/mocha');
         const forkArgs =
         [
@@ -63,7 +64,7 @@ task
             'test/**/*.spec.ts',
         ];
         const forkOpts = { env: { ...process.env, TS_NODE_PROJECT: 'test/tsconfig.json' } };
-        const childProcess = fork(c8, forkArgs, forkOpts);
+        const childProcess = fork(nycPath, forkArgs, forkOpts);
         childProcess.on('exit', code => callback(code && 'Test failed'));
     },
 );

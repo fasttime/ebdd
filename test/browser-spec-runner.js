@@ -8,6 +8,9 @@
         mocha.run();
     });
 
+    var ExtensibleArray = function () { };
+    ExtensibleArray.prototype = Array.prototype;
+
     var TitleFormatter = /** @class */ (function () {
         function TitleFormatter(titlePattern, paramCount) {
             function titleFormatter(params) {
@@ -129,6 +132,19 @@
     }
     var propNameRegExp = /^\.((?!\d)[$\w\u0080-\uffff]+)|^\[(?:(0|-?[1-9]\d*)|"((?:[^\\"]|\\[^])*)"|'((?:[^\\']|\\[^])*)')]/;
 
+    var __extends = (undefined && undefined.__extends) || (function () {
+        var extendStatics = function (d, b) {
+            extendStatics = Object.setPrototypeOf ||
+                ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+                function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+            return extendStatics(d, b);
+        };
+        return function (d, b) {
+            extendStatics(d, b);
+            function __() { this.constructor = d; }
+            d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+        };
+    })();
     var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
         for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
         for (var r = Array(s), k = 0, i = 0; i < il; i++)
@@ -160,30 +176,31 @@
         }
         return ParamInfo;
     }());
-    var SpecItemArrayPrototype = Object.create(Array.prototype, {
-        timeout: {
-            configurable: true,
-            value: function (ms) {
-                if (arguments.length) {
-                    for (var _i = 0, _a = this; _i < _a.length; _i++) {
-                        var specItem = _a[_i];
-                        specItem.timeout(ms);
-                    }
-                    return this;
+    var SpecItemArray = /** @class */ (function (_super) {
+        __extends(SpecItemArray, _super);
+        function SpecItemArray() {
+            return _super !== null && _super.apply(this, arguments) || this;
+        }
+        SpecItemArray.prototype.timeout = function (ms) {
+            if (arguments.length) {
+                for (var _i = 0, _a = this; _i < _a.length; _i++) {
+                    var specItem = _a[_i];
+                    specItem.timeout(ms);
                 }
-                {
-                    var sum = 0;
-                    for (var _b = 0, _c = this; _b < _c.length; _b++) {
-                        var specItem = _c[_b];
-                        sum += specItem.timeout();
-                    }
-                    var ms_1 = sum / this.length;
-                    return ms_1;
+                return this;
+            }
+            {
+                var sum = 0;
+                for (var _b = 0, _c = this; _b < _c.length; _b++) {
+                    var specItem = _c[_b];
+                    sum += specItem.timeout();
                 }
-            },
-            writable: true,
-        },
-    });
+                var ms_1 = sum / this.length;
+                return ms_1;
+            }
+        };
+        return SpecItemArray;
+    }(ExtensibleArray));
     function bindArguments(fn, args) {
         var boundFn = function () {
             var returnValue = fn.apply(this, args);
@@ -234,13 +251,14 @@
                 var paramCount = baseParamLists[0].length;
                 validateSuiteCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
-                var suites = Object.create(SpecItemArrayPrototype);
+                var suites = new SpecItemArray();
                 for (var _a = 0, baseParamLists_1 = baseParamLists; _a < baseParamLists_1.length; _a++) {
                     var paramList = baseParamLists_1[_a];
                     var createSuite = getCreateSuite(paramList.mode);
                     var title = titleFormatter(paramList);
                     var fnWrapper = bindArguments(fn, paramList);
                     var suite_1 = createSuite(title, fnWrapper);
+                    suites.parent = suite_1.parent;
                     if (adapter)
                         adapter.apply(suite_1, adaptParams);
                     suites.push(suite_1);
@@ -278,7 +296,7 @@
                 var paramCount = baseParamLists[0].length;
                 validateTestCallback(fn, paramCount);
                 var titleFormatter = new TitleFormatter(titlePattern, paramCount);
-                var tests = Object.create(SpecItemArrayPrototype);
+                var tests = new SpecItemArray();
                 for (var _a = 0, baseParamLists_2 = baseParamLists; _a < baseParamLists_2.length; _a++) {
                     var paramList = baseParamLists_2[_a];
                     var createTest = getCreateTest(paramList.mode);
@@ -291,6 +309,7 @@
                         fnWrapper = bindArgumentsButLast(fn, paramList);
                     }
                     var test_1 = createTest(title, fnWrapper);
+                    tests.parent = test_1.parent;
                     if (adapter)
                         adapter.apply(test_1, adaptParams);
                     tests.push(test_1);
@@ -3420,6 +3439,8 @@
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
+            // Return value parent
+            deepStrictEqual(actualDescribeReturnValue.parent, expectedParent);
             // Return value timeout
             var suiteCount = bddDescribeAnyList.length;
             var expectedTimeout = (suiteCount + 1) * 500;
@@ -3458,12 +3479,15 @@
         var bddDescribeOnly;
         var bddDescribeSkip;
         var ebdd;
+        var expectedParent;
         beforeEach(function () {
             function newSuite(title, parentContext) {
                 var suite = new mocha$1.Suite(title, parentContext);
+                suite.parent = expectedParent;
                 suite.timeout(timeout += 1000);
                 return suite;
             }
+            expectedParent = new mocha$1.Suite('Parent Suite');
             var timeout = 0;
             var sandbox = sinon.createSandbox();
             var describe = bddDescribe = sandbox.stub().callsFake(newSuite);
@@ -3785,6 +3809,8 @@
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
+            // Return value parent
+            deepStrictEqual(actualItReturnValue.parent, expectedParent);
             // Return value timeout
             deepStrictEqual(actualItReturnValue.timeout(), expectedTimeout);
             var timeout = 42;
@@ -3822,12 +3848,15 @@
         var bddItOnly;
         var bddItSkip;
         var ebdd;
+        var expectedParent;
         beforeEach(function () {
             function newTest(title, fn) {
                 var test = new mocha$1.Test(title, fn);
+                test.parent = expectedParent;
                 test.timeout(timeout += 1000);
                 return test;
             }
+            expectedParent = new mocha$1.Suite('Parent Suite');
             var timeout = 0;
             var sandbox = sinon.createSandbox();
             var it = sandbox.stub().callsFake(newTest);
@@ -3841,7 +3870,7 @@
         });
         after(function () {
             var _a;
-            (_a = {}, bddIt = _a.bddIt, bddItOnly = _a.bddItOnly, bddItSkip = _a.bddItSkip, ebdd = _a.ebdd);
+            (_a = {}, bddIt = _a.bddIt, bddItOnly = _a.bddItOnly, bddItSkip = _a.bddItSkip, ebdd = _a.ebdd, expectedParent = _a.expectedParent);
         });
         it('it', function () { return assertBDDIt(ebdd.it, bddIt); });
         it('it.only', function () { return assertBDDIt(ebdd.it.only, bddItOnly); });

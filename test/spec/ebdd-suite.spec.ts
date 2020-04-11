@@ -123,6 +123,9 @@ describe
                 (({ returnValue }: SinonSpyCall<any[], Suite>) => returnValue),
             );
 
+            // Return value parent
+            deepStrictEqual(actualDescribeReturnValue.parent, expectedParent);
+
             // Return value timeout
             const suiteCount = bddDescribeAnyList.length;
             const expectedTimeout = (suiteCount + 1) * 500;
@@ -170,6 +173,7 @@ describe
         let bddDescribeOnly:    SinonStub;
         let bddDescribeSkip:    SinonStub;
         let ebdd:               EBDDGlobals;
+        let expectedParent:     Suite;
 
         beforeEach
         (
@@ -184,10 +188,12 @@ describe
                 function newSuite(title: string, parentContext?: Context): Suite
                 {
                     const suite = new Suite(title, parentContext);
+                    suite.parent = expectedParent;
                     suite.timeout(timeout += 1000);
                     return suite;
                 }
 
+                expectedParent = new Suite('Parent Suite');
                 let timeout = 0;
                 const sandbox = createSandbox();
                 const describe = bddDescribe = sandbox.stub().callsFake(newSuite) as BDDDescribe;

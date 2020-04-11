@@ -10,7 +10,7 @@ import
 from '../../src/mocha-interface';
 import { CallCountingStub, isArrayBased }                           from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
-import { AsyncFunc, Done, Func, Test }                              from 'mocha';
+import { AsyncFunc, Done, Func, Suite, Test }                       from 'mocha';
 import { SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }    from 'sinon';
 
 describe
@@ -173,6 +173,9 @@ describe
                 bddItAnyCalls.map(({ returnValue }: SinonSpyCall<any[], Test>) => returnValue),
             );
 
+            // Return value parent
+            deepStrictEqual(actualItReturnValue.parent, expectedParent);
+
             // Return value timeout
             deepStrictEqual(actualItReturnValue.timeout(), expectedTimeout);
             const timeout = 42;
@@ -215,10 +218,11 @@ describe
             return params;
         }
 
-        let bddIt:      BDDCallData;
-        let bddItOnly:  BDDCallData;
-        let bddItSkip:  BDDCallData;
-        let ebdd:       EBDDGlobals;
+        let bddIt:          BDDCallData;
+        let bddItOnly:      BDDCallData;
+        let bddItSkip:      BDDCallData;
+        let ebdd:           EBDDGlobals;
+        let expectedParent: Suite;
 
         beforeEach
         (
@@ -232,10 +236,12 @@ describe
                 function newTest(title: string, fn: AsyncFunc | Func | undefined): Test
                 {
                     const test = new Test(title, fn);
+                    test.parent = expectedParent;
                     test.timeout(timeout += 1000);
                     return test;
                 }
 
+                expectedParent = new Suite('Parent Suite');
                 let timeout = 0;
                 const sandbox = createSandbox();
                 const it = sandbox.stub().callsFake(newTest) as BDDIt;
@@ -253,7 +259,7 @@ describe
         (
             () =>
             {
-                ({ bddIt, bddItOnly, bddItSkip, ebdd } = { } as any);
+                ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent } = { } as any);
             },
         );
 

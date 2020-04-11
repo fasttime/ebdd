@@ -1,3 +1,4 @@
+import ExtensibleArray                                              from './extensible-array';
 import TitleFormatter                                               from './title-formatter';
 import { Context, Done, HookFunction, MochaGlobals, Suite, Test }   from 'mocha';
 
@@ -112,12 +113,6 @@ extends ParameterizableFunction<ParameterizedTestFunction<ParamListType, AdaptPa
     SpecItemArray<Test>;
 }
 
-export interface SpecItemArray<SpecItemType extends Suite | Test> extends Array<SpecItemType>
-{
-    timeout(): number;
-    timeout(ms: string | number): this;
-}
-
 type SuiteAdapter<AdaptParamListType extends unknown[]> =
 (this: Suite, ...adaptParams: AdaptParamListType) => void;
 
@@ -166,35 +161,28 @@ export class ParamInfo<ParamType>
     }
 }
 
-const SpecItemArrayPrototype: SpecItemArray<Suite | Test> =
-Object.create
-(
-    Array.prototype,
+export class SpecItemArray<SpecItemType extends Suite | Test> extends ExtensibleArray<SpecItemType>
+{
+    public parent: Suite | undefined;
+    public timeout(): number;
+    public timeout(ms: string | number): this;
+    public timeout(ms?: string | number): number | this
     {
-        timeout:
+        if (arguments.length)
         {
-            configurable: true,
-            value(ms?: string | number): any
-            {
-                if (arguments.length)
-                {
-                    for (const specItem of this)
-                        specItem.timeout(ms!);
-                    return this;
-                }
-                {
-                    let sum = 0;
-                    for (const specItem of this)
-                        sum += specItem.timeout();
-                    const ms = sum / this.length;
-                    return ms;
-                }
-            },
-            writable: true,
-        } as
-        PropertyDescriptor & ThisType<(Suite | Test)[]>,
-    },
-);
+            for (const specItem of this)
+                specItem.timeout(ms!);
+            return this;
+        }
+        {
+            let sum = 0;
+            for (const specItem of this)
+                sum += specItem.timeout();
+            const ms = sum / this.length;
+            return ms;
+        }
+    }
+}
 
 export function bindArguments
 <ThisType, ArgListType extends unknown[], RetType>
@@ -292,13 +280,14 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             const paramCount = baseParamLists[0].length;
             validateSuiteCallback(fn, paramCount);
             const titleFormatter = new TitleFormatter(titlePattern, paramCount);
-            const suites: SpecItemArray<Suite> = Object.create(SpecItemArrayPrototype);
+            const suites = new SpecItemArray<Suite>();
             for (const paramList of baseParamLists)
             {
                 const createSuite = getCreateSuite(paramList.mode);
                 const title = titleFormatter(paramList);
                 const fnWrapper = bindArguments(fn, paramList);
                 const suite = createSuite(title, fnWrapper);
+                suites.parent = suite.parent;
                 if (adapter)
                     adapter.apply(suite, adaptParams);
                 suites.push(suite);
@@ -356,7 +345,7 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
             const paramCount = baseParamLists[0].length;
             validateTestCallback(fn, paramCount);
             const titleFormatter = new TitleFormatter(titlePattern, paramCount);
-            const tests: SpecItemArray<Test> = Object.create(SpecItemArrayPrototype);
+            const tests = new SpecItemArray<Test>();
             for (const paramList of baseParamLists)
             {
                 const createTest = getCreateTest(paramList.mode);
@@ -375,6 +364,7 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
                     fnWrapper = bindArgumentsButLast(fn as TestCallbackType, paramList);
                 }
                 const test = createTest(title, fnWrapper);
+                tests.parent = test.parent;
                 if (adapter)
                     adapter.apply(test, adaptParams);
                 tests.push(test);
