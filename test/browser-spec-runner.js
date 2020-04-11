@@ -1,5 +1,7 @@
-(function (mocha$1, sinon) {
+(function (Mocha, sinon) {
     'use strict';
+
+    var Mocha__default = 'default' in Mocha ? Mocha['default'] : Mocha;
 
     /* eslint-env browser */
     /* global mocha */
@@ -465,15 +467,10 @@
         var message = 'Argument is not a nonempty array-like object.';
         throw TypeError(message);
     }
-    function initEBDD(_a) {
-        var interfaces = _a.interfaces;
-        var bdd = interfaces.bdd;
-        var ebdd = function (suite) {
-            bdd(suite);
-            suite.on('pre-require', createInterface);
-        };
-        interfaces.ebdd = ebdd;
-        return ebdd;
+    function ebdd(suite) {
+        var bdd = this.constructor.interfaces.bdd;
+        bdd(suite);
+        suite.on('pre-require', createInterface);
     }
     function makeParamList(paramList, mode) {
         paramList.mode = mode;
@@ -3482,12 +3479,12 @@
         var expectedParent;
         beforeEach(function () {
             function newSuite(title, parentContext) {
-                var suite = new mocha$1.Suite(title, parentContext);
+                var suite = new Mocha.Suite(title, parentContext);
                 suite.parent = expectedParent;
                 suite.timeout(timeout += 1000);
                 return suite;
             }
-            expectedParent = new mocha$1.Suite('Parent Suite');
+            expectedParent = new Mocha.Suite('Parent Suite');
             var timeout = 0;
             var sandbox = sinon.createSandbox();
             var describe = bddDescribe = sandbox.stub().callsFake(newSuite);
@@ -3851,12 +3848,12 @@
         var expectedParent;
         beforeEach(function () {
             function newTest(title, fn) {
-                var test = new mocha$1.Test(title, fn);
+                var test = new Mocha.Test(title, fn);
                 test.parent = expectedParent;
                 test.timeout(timeout += 1000);
                 return test;
             }
-            expectedParent = new mocha$1.Suite('Parent Suite');
+            expectedParent = new Mocha.Suite('Parent Suite');
             var timeout = 0;
             var sandbox = sinon.createSandbox();
             var it = sandbox.stub().callsFake(newTest);
@@ -4049,11 +4046,10 @@
     describe('ebdd', function () {
         after(function () { return sinon.restore(); });
         it('sets up correctly', function () {
-            var bdd = sinon.stub(mocha$1.interfaces, 'bdd');
-            initEBDD({ interfaces: mocha$1.interfaces });
-            var ebdd = mocha$1.interfaces.ebdd;
-            var suite = new mocha$1.Suite('abc');
-            ebdd(suite);
+            var mocha = new Mocha__default();
+            var bdd = sinon.stub(Mocha.interfaces, 'bdd');
+            var suite = new Mocha.Suite('abc');
+            ebdd.call(mocha, suite);
             ok(bdd.calledOnceWithExactly(suite));
             var listeners = suite.listeners('pre-require');
             deepStrictEqual(listeners, [createInterface]);

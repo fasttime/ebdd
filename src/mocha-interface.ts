@@ -1,6 +1,23 @@
-import ExtensibleArray                                              from './extensible-array';
-import TitleFormatter                                               from './title-formatter';
-import { Context, Done, HookFunction, MochaGlobals, Suite, Test }   from 'mocha';
+import ExtensibleArray                                                  from './extensible-array';
+import TitleFormatter                                                   from './title-formatter';
+import type { Context, Done, HookFunction, MochaGlobals, Suite, Test }  from 'mocha';
+
+declare global
+{
+    interface Mocha
+    {
+        constructor:
+        {
+            readonly interfaces: typeof Mocha.interfaces;
+            new (): Mocha;
+        };
+    }
+
+    namespace Mocha.interfaces
+    {
+        function ebdd(suite: Suite): void;
+    }
+}
 
 export interface AdaptableSuiteFunction extends UnparameterizedSuiteFunction
 {
@@ -63,11 +80,6 @@ export interface EBDDGlobals
     xdescribe:  UnparameterizedSuiteFunction;
     xit:        UnparameterizedTestFunction;
     xspecify:   UnparameterizedTestFunction;
-}
-
-export interface MochaConstructor
-{
-    readonly interfaces: { [InterfaceName: string]: (suite: Suite) => void; };
 }
 
 enum Mode
@@ -587,17 +599,11 @@ function createParamLists
     throw TypeError(message);
 }
 
-export function initEBDD({ interfaces }: MochaConstructor): (suite: Suite) => void
+export function ebdd(this: Mocha, suite: Suite): void
 {
-    const { bdd } = interfaces;
-    const ebdd =
-    (suite: Suite): void =>
-    {
-        bdd(suite);
-        suite.on('pre-require', createInterface);
-    };
-    interfaces.ebdd = ebdd;
-    return ebdd;
+    const { bdd } = this.constructor.interfaces;
+    bdd(suite);
+    suite.on('pre-require', createInterface);
 }
 
 function makeParamList

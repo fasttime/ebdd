@@ -460,15 +460,10 @@
         var message = 'Argument is not a nonempty array-like object.';
         throw TypeError(message);
     }
-    function initEBDD(_a) {
-        var interfaces = _a.interfaces;
-        var bdd = interfaces.bdd;
-        var ebdd = function (suite) {
-            bdd(suite);
-            suite.on('pre-require', createInterface);
-        };
-        interfaces.ebdd = ebdd;
-        return ebdd;
+    function ebdd(suite) {
+        var bdd = this.constructor.interfaces.bdd;
+        bdd(suite);
+        suite.on('pre-require', createInterface);
     }
     function makeParamList(paramList, mode) {
         paramList.mode = mode;
@@ -583,15 +578,9 @@
         }
     }
 
-    var mochaConstructor;
-    if (typeof Mocha === 'function')
-        mochaConstructor = Mocha;
-    else if (typeof require === 'function')
-        mochaConstructor = require('mocha');
-    else
-        throw Error('Mocha not found.');
-    var ebdd = initEBDD(mochaConstructor);
     if (typeof module !== 'undefined')
         module.exports = ebdd;
+    if (typeof Mocha === 'function')
+        Mocha.interfaces.ebdd = ebdd;
 
 }());

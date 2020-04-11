@@ -29,6 +29,7 @@ task
             {
                 src: '{src,test}/**/*.ts',
                 parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
+                rules: { '@typescript-eslint/no-namespace': 'off' },
             },
             {
                 src: ['test/**/*.js', '!test/browser-spec-runner.js'],
