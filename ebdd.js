@@ -211,7 +211,8 @@
         };
         return boundFn;
     }
-    function createInterface(context) {
+    function createInterface(context, file, mocha) {
+        var _this = this;
         function createAdaptableSuiteFunction() {
             function adapt(adapter) {
                 validateAdapter(adapter);
@@ -414,7 +415,26 @@
                     return bddXit;
             }
         }
-        var _a = context, bddDescribe = _a.describe, bddIt = _a.it;
+        {
+            var pickBDDPreRequireListener = function () {
+                Mocha_1.interfaces.bdd(_this);
+                var listeners = _this.listeners('pre-require');
+                bddPreRequireListener_1 = listeners[listeners.length - 1];
+                _this.removeListener('pre-require', bddPreRequireListener_1);
+            };
+            var Mocha_1 = mocha.constructor;
+            var bddPreRequireListener_1;
+            if (this.getMaxListeners) {
+                var maxListeners = this.getMaxListeners();
+                this.setMaxListeners(0);
+                pickBDDPreRequireListener();
+                this.setMaxListeners(maxListeners);
+            }
+            else
+                pickBDDPreRequireListener();
+            bddPreRequireListener_1.call(this, context, file, mocha);
+        }
+        var bddDescribe = context.describe, bddIt = context.it;
         var bddXit = function (title) { return bddIt(title); };
         context.describe = context.context =
             createAdaptableSuiteFunction();
@@ -461,8 +481,6 @@
         throw TypeError(message);
     }
     function ebdd(suite) {
-        var bdd = this.constructor.interfaces.bdd;
-        bdd(suite);
         suite.on('pre-require', createInterface);
     }
     function makeParamList(paramList, mode) {

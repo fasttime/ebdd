@@ -1,6 +1,5 @@
 import
 {
-    EBDDGlobals,
     ParamArrayLike,
     ParamInfo,
     ParameterizedSuiteFunction,
@@ -8,10 +7,10 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
-import { CallCountingStub, isArrayBased }                           from './utils';
-import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
-import { Context, Suite }                                           from 'mocha';
-import { SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }    from 'sinon';
+import { CallCountingStub, isArrayBased }                                       from './utils';
+import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
+import Mocha, { Context, MochaGlobals, Suite, SuiteFunction, interfaces }       from 'mocha';
+import { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
 
 describe
 (
@@ -172,8 +171,9 @@ describe
         let bddDescribe:        SinonStub;
         let bddDescribeOnly:    SinonStub;
         let bddDescribeSkip:    SinonStub;
-        let ebdd:               EBDDGlobals;
+        let ebdd:               MochaGlobals;
         let expectedParent:     Suite;
+        let sandbox:            SinonSandbox;
 
         beforeEach
         (
@@ -193,17 +193,34 @@ describe
                     return suite;
                 }
 
+                sandbox = createSandbox();
                 expectedParent = new Suite('Parent Suite');
                 let timeout = 0;
-                const sandbox = createSandbox();
                 const describe = bddDescribe = sandbox.stub().callsFake(newSuite) as BDDDescribe;
                 bddDescribeOnly = describe.only = sandbox.stub().callsFake(newSuite);
                 bddDescribeSkip = describe.skip = sandbox.stub().callsFake(newSuite);
-                const context = { describe } as unknown as EBDDGlobals;
-                createInterface(context);
+                sandbox.stub(interfaces, 'bdd').callsFake
+                (
+                    (suite: Suite): void =>
+                    {
+                        suite.on
+                        (
+                            'pre-require',
+                            (context: MochaGlobals): void =>
+                            {
+                                context.describe = describe as unknown as SuiteFunction;
+                            },
+                        );
+                    },
+                );
+                const mocha = new Mocha();
+                const context = { } as MochaGlobals;
+                createInterface.call(mocha.suite, context, '', mocha);
                 ebdd = context;
             },
         );
+
+        afterEach(() => sandbox.restore());
 
         after
         (

@@ -1,8 +1,6 @@
-declare const MochaBar: ReporterConstructor;
-declare namespace Mocha
+import type { ReporterConstructor } from 'mocha';
+
+declare global
 {
-    interface MochaOptions
-    {
-        checkLeaks: boolean;
-    }
+    const MochaBar: ReporterConstructor;
 }

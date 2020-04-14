@@ -1,6 +1,5 @@
 import
 {
-    EBDDGlobals,
     ParamArrayLike,
     ParamInfo,
     ParameterizedTestFunction,
@@ -8,10 +7,22 @@ import
     createInterface,
 }
 from '../../src/mocha-interface';
-import { CallCountingStub, isArrayBased }                           from './utils';
-import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
-import { AsyncFunc, Done, Func, Suite, Test }                       from 'mocha';
-import { SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }    from 'sinon';
+import { CallCountingStub, isArrayBased }                                       from './utils';
+import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
+import
+Mocha,
+{
+    AsyncFunc,
+    Done,
+    Func,
+    MochaGlobals,
+    Suite,
+    Test,
+    TestFunction,
+    interfaces,
+}
+from 'mocha';
+import { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
 
 describe
 (
@@ -221,8 +232,9 @@ describe
         let bddIt:          BDDCallData;
         let bddItOnly:      BDDCallData;
         let bddItSkip:      BDDCallData;
-        let ebdd:           EBDDGlobals;
+        let ebdd:           MochaGlobals;
         let expectedParent: Suite;
+        let sandbox:        SinonSandbox;
 
         beforeEach
         (
@@ -241,25 +253,42 @@ describe
                     return test;
                 }
 
+                sandbox = createSandbox();
                 expectedParent = new Suite('Parent Suite');
                 let timeout = 0;
-                const sandbox = createSandbox();
                 const it = sandbox.stub().callsFake(newTest) as BDDIt;
                 bddIt = { it, useFn: true };
                 bddItSkip = { it, useFn: false };
                 it.only = sandbox.stub().callsFake(newTest);
                 bddItOnly = { it: it.only, useFn: true };
-                const context = { it } as unknown as EBDDGlobals;
-                createInterface(context);
+                sandbox.stub(interfaces, 'bdd').callsFake
+                (
+                    (suite: Suite): void =>
+                    {
+                        suite.on
+                        (
+                            'pre-require',
+                            (context: MochaGlobals): void =>
+                            {
+                                context.it = it as unknown as TestFunction;
+                            },
+                        );
+                    },
+                );
+                const mocha = new Mocha();
+                const context = { } as MochaGlobals;
+                createInterface.call(mocha.suite, context, '', mocha);
                 ebdd = context;
             },
         );
+
+        afterEach(() => sandbox.restore());
 
         after
         (
             () =>
             {
-                ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent } = { } as any);
+                ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent, sandbox } = { } as any);
             },
         );
 

@@ -1,6 +1,20 @@
 import ExtensibleArray                                                  from './extensible-array';
 import TitleFormatter                                                   from './title-formatter';
-import type { Context, Done, HookFunction, MochaGlobals, Suite, Test }  from 'mocha';
+import type
+{
+    Context,
+    Done,
+    HookFunction,
+    MochaGlobals,
+    MochaOptions,
+    PendingTestFunction,
+    Suite,
+    SuiteFunction,
+    Test,
+    TestFunction,
+    interfaces,
+}
+from 'mocha';
 
 declare global
 {
@@ -8,15 +22,57 @@ declare global
     {
         constructor:
         {
-            readonly interfaces: typeof Mocha.interfaces;
-            new (): Mocha;
+            readonly Suite:         typeof Suite;
+            readonly Test:          typeof Test;
+            readonly interfaces:    typeof interfaces;
+            new (options?: MochaOptions): Mocha;
         };
     }
 
-    namespace Mocha.interfaces
+    namespace Mocha
     {
-        function ebdd(suite: Suite): void;
+        interface ExclusiveSuiteFunction extends UnparameterizedSuiteFunction
+        { }
+
+        interface ExclusiveTestFunction extends UnparameterizedTestFunction
+        { }
+
+        interface InterfaceContributions
+        {
+            ebdd: never;
+        }
+
+        interface MochaGlobals extends EBDDGlobals
+        { }
+
+        interface MochaOptions
+        {
+            // Add definition missing in mocha types.
+            /** Enable global leak checking. */
+            checkLeaks?: boolean;
+        }
+
+        interface PendingSuiteFunction extends UnparameterizedSuiteFunction
+        { }
+
+        interface PendingTestFunction extends UnparameterizedTestFunction
+        { }
+
+        interface SuiteFunction extends AdaptableSuiteFunction
+        { }
+
+        interface TestFunction extends AdaptableTestFunction
+        { }
+
+        namespace interfaces
+        {
+            function ebdd(suite: Suite): void;
+        }
     }
+
+    const only: <ParamType>(param: ParamType) => ParamInfo<ParamType>;
+    const skip: <ParamType>(param: ParamType) => ParamInfo<ParamType>;
+    const when: <ParamType>(condition: boolean, param: ParamType) => ParamInfo<ParamType>;
 }
 
 export interface AdaptableSuiteFunction extends UnparameterizedSuiteFunction
@@ -228,7 +284,8 @@ export function bindArgumentsButLast
     return boundFn;
 }
 
-export function createInterface(context: MochaGlobals | EBDDGlobals): void
+export function createInterface
+(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
 {
     function createAdaptableSuiteFunction(): AdaptableSuiteFunction
     {
@@ -516,7 +573,7 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
         case Mode.ONLY:
             return bddDescribe.only;
         case Mode.SKIP:
-            return bddDescribe.skip as (title: string, fn: SuiteCallback) => Suite;
+            return bddDescribe.skip;
         }
     }
 
@@ -533,23 +590,44 @@ export function createInterface(context: MochaGlobals | EBDDGlobals): void
         }
     }
 
-    const { describe: bddDescribe, it: bddIt } = context as MochaGlobals;
-
-    const bddXit = (title: string): Test => bddIt(title);
+    {
+        const pickBDDPreRequireListener =
+        (): void =>
+        {
+            Mocha.interfaces.bdd(this);
+            const listeners = this.listeners('pre-require');
+            bddPreRequireListener = listeners[listeners.length - 1] as typeof createInterface;
+            this.removeListener('pre-require', bddPreRequireListener);
+        };
+        const Mocha = mocha.constructor;
+        let bddPreRequireListener: typeof createInterface;
+        if (this.getMaxListeners as unknown)
+        {
+            const maxListeners = this.getMaxListeners();
+            this.setMaxListeners(0);
+            pickBDDPreRequireListener();
+            this.setMaxListeners(maxListeners);
+        }
+        else
+            pickBDDPreRequireListener();
+        bddPreRequireListener!.call(this, context, file, mocha);
+    }
+    const { describe: bddDescribe, it: bddIt } = context;
+    const bddXit = (title: string): Test => (bddIt as unknown as typeof bddXit)(title);
 
     context.describe = context.context =
-    createAdaptableSuiteFunction();
+    createAdaptableSuiteFunction() as SuiteFunction;
     context.xdescribe = context.xcontext =
     createUnparameterizedSuiteFunction(Mode.SKIP, Brand.XDESCRIBE);
     context.it = context.specify =
-    createAdaptableTestFunction();
+    createAdaptableTestFunction() as TestFunction;
     context.xit = context.xspecify =
-    createUnparameterizedTestFunction(Mode.SKIP, Brand.XIT);
-    (context as EBDDGlobals).only =
+    createUnparameterizedTestFunction(Mode.SKIP, Brand.XIT) as PendingTestFunction;
+    context.only =
     <ParamType>(param: ParamType): ParamInfo<ParamType> => new ParamInfo(param, Mode.ONLY);
-    (context as EBDDGlobals).skip =
+    context.skip =
     <ParamType>(param: ParamType): ParamInfo<ParamType> => new ParamInfo(param, Mode.SKIP);
-    (context as EBDDGlobals).when =
+    context.when =
     <ParamType>(condition: boolean, param: ParamType): ParamInfo<ParamType> =>
     new ParamInfo(param, condition ? Mode.NORMAL : Mode.SKIP);
 }
@@ -599,10 +677,8 @@ function createParamLists
     throw TypeError(message);
 }
 
-export function ebdd(this: Mocha, suite: Suite): void
+export function ebdd(suite: Suite): void
 {
-    const { bdd } = this.constructor.interfaces;
-    bdd(suite);
     suite.on('pre-require', createInterface);
 }
 

@@ -1,27 +1,67 @@
-import { createInterface, ebdd }    from '../../src/mocha-interface';
-import { deepStrictEqual, ok }      from 'assert';
-import Mocha, { Suite, interfaces } from 'mocha';
-import { restore, stub }            from 'sinon';
+import { ebdd }                                     from '../../src/mocha-interface';
+import { ok, strictEqual }                          from 'assert';
+import Mocha, { MochaGlobals, Suite, interfaces }   from 'mocha';
+import { SinonSandbox, createSandbox }              from 'sinon';
 
 describe
 (
-    'ebdd',
+    'ebdd sets up correctly',
     () =>
     {
-        after(() => restore());
+        function test(): void
+        {
+            const bddSpy = sandbox.spy(interfaces, 'bdd');
+            const mocha = new Mocha({ ui: 'ebdd' });
+            const { suite } = mocha;
+            const context = { } as MochaGlobals;
+            suite.emit('pre-require', context, '', mocha);
+            ok(bddSpy.calledOnce);
+            ok(bddSpy.calledWithExactly(suite));
+            strictEqual(typeof context.only, 'function');
+        }
+
+        let sandbox: SinonSandbox;
+
+        beforeEach
+        (
+            () =>
+            {
+                Mocha.interfaces.ebdd = ebdd;
+                sandbox = createSandbox();
+            },
+        );
+
+        afterEach(() => sandbox.restore());
+
+        after
+        (
+            () =>
+            {
+                delete Mocha.interfaces.ebdd;
+                sandbox = null as any;
+            },
+        );
 
         it
         (
-            'sets up correctly',
+            'normally',
             () =>
             {
-                const mocha = new Mocha();
-                const bdd = stub(interfaces, 'bdd');
-                const suite = new Suite('abc');
-                ebdd.call(mocha, suite);
-                ok(bdd.calledOnceWithExactly(suite));
-                const listeners = suite.listeners('pre-require');
-                deepStrictEqual(listeners, [createInterface]);
+                test();
+            },
+        );
+
+        it
+        (
+            'without maxListeners',
+            function ()
+            {
+                const { prototype } = Suite;
+                if (!('getMaxListeners' in prototype && 'setMaxListeners' in prototype))
+                    this.skip();
+                sandbox.stub(prototype, 'getMaxListeners').value(undefined);
+                sandbox.stub(prototype, 'setMaxListeners').value(undefined);
+                test();
             },
         );
     },
