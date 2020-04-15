@@ -1,5 +1,5 @@
-import ExtensibleArray                                                  from './extensible-array';
-import TitleFormatter                                                   from './title-formatter';
+import ExtensibleArray  from './extensible-array';
+import TitleFormatter   from './title-formatter';
 import type
 {
     Context,
@@ -284,8 +284,7 @@ export function bindArgumentsButLast
     return boundFn;
 }
 
-export function createInterface
-(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
+function createInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
 {
     function createAdaptableSuiteFunction(): AdaptableSuiteFunction
     {
@@ -613,7 +612,7 @@ export function createInterface
         bddPreRequireListener!.call(this, context, file, mocha);
     }
     const { describe: bddDescribe, it: bddIt } = context;
-    const bddXit = (title: string): Test => (bddIt as unknown as typeof bddXit)(title);
+    const bddXit = (title: string): Test => bddIt(title);
 
     context.describe = context.context =
     createAdaptableSuiteFunction() as SuiteFunction;

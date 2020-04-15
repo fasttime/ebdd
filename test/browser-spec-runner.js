@@ -615,6 +615,18 @@
             return false;
         return true;
     }
+    function loadEBDD() {
+        var context = {};
+        Mocha__default.interfaces.ebdd = ebdd;
+        try {
+            var mocha_1 = new Mocha__default({ ui: 'ebdd' });
+            mocha_1.suite.emit('pre-require', context, '', mocha_1);
+        }
+        finally {
+            delete Mocha__default.interfaces.ebdd;
+        }
+        return context;
+    }
 
     var global$1 = (typeof global !== "undefined" ? global :
                 typeof self !== "undefined" ? self :
@@ -3514,10 +3526,7 @@
                     context.describe = describe;
                 });
             });
-            var mocha = new Mocha__default();
-            var context = {};
-            createInterface.call(mocha.suite, context, '', mocha);
-            ebdd = context;
+            ebdd = loadEBDD();
         });
         afterEach(function () { return sandbox.restore(); });
         after(function () {
@@ -3893,10 +3902,7 @@
                     context.it = it;
                 });
             });
-            var mocha = new Mocha__default();
-            var context = {};
-            createInterface.call(mocha.suite, context, '', mocha);
-            ebdd = context;
+            ebdd = loadEBDD();
         });
         afterEach(function () { return sandbox.restore(); });
         after(function () {
@@ -4082,11 +4088,23 @@
             var bddSpy = sandbox.spy(Mocha.interfaces, 'bdd');
             var mocha = new Mocha__default({ ui: 'ebdd' });
             var suite = mocha.suite;
+            var actualListener;
+            var recorder = function (event, listener) {
+                actualListener = sandbox.spy(listener);
+                var suite = this.addListener(event, actualListener);
+                return suite;
+            };
+            sandbox.stub(suite, 'on').callsFake(recorder);
             var context = {};
-            suite.emit('pre-require', context, '', mocha);
+            var file = '?';
+            suite.emit('pre-require', context, file, mocha);
             ok(bddSpy.calledOnce);
             ok(bddSpy.calledWithExactly(suite));
+            ok(actualListener.calledOnce);
+            ok(actualListener.calledWithExactly(context, file, mocha));
             strictEqual(typeof context.only, 'function');
+            strictEqual(typeof context.skip, 'function');
+            strictEqual(typeof context.when, 'function');
         }
         var sandbox;
         beforeEach(function () {
@@ -4116,14 +4134,12 @@
         var skip;
         var when;
         beforeEach(function () {
-            var context = {};
-            var mocha = new Mocha__default();
-            createInterface.call(mocha.suite, context, '', mocha);
-            (only = context.only, skip = context.skip);
+            var _a;
+            (_a = loadEBDD(), only = _a.only, skip = _a.skip);
         });
         after(function () {
-            var context = {};
-            (only = context.only, skip = context.skip);
+            var _a;
+            (_a = {}, only = _a.only, skip = _a.skip);
         });
         it('skip(skip(...))', function () { return throws(function () { return skip(skip({})); }); });
         it('skip(only(...))', function () { return throws(function () { return skip(only({})); }); });

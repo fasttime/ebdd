@@ -4,12 +4,11 @@ import
     ParamInfo,
     ParameterizedSuiteFunction,
     UnparameterizedSuiteFunction,
-    createInterface,
 }
 from '../../src/mocha-interface';
-import { CallCountingStub, isArrayBased }                                       from './utils';
+import { CallCountingStub, isArrayBased, loadEBDD }                             from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
-import Mocha, { Context, MochaGlobals, Suite, SuiteFunction, interfaces }       from 'mocha';
+import { Context, MochaGlobals, Suite, SuiteFunction, interfaces }              from 'mocha';
 import { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
 
 describe
@@ -213,10 +212,7 @@ describe
                         );
                     },
                 );
-                const mocha = new Mocha();
-                const context = { } as MochaGlobals;
-                createInterface.call(mocha.suite, context, '', mocha);
-                ebdd = context;
+                ebdd = loadEBDD();
             },
         );
 

@@ -1,4 +1,6 @@
-import { SinonStub } from 'sinon';
+import { ebdd }                             from '../../src/mocha-interface';
+import Mocha, { MochaGlobals, interfaces }  from 'mocha';
+import { SinonStub }                        from 'sinon';
 
 export interface CallCountingStub<TArgs extends any[] = any[], TReturnValue = any>
 extends SinonStub<TArgs, TReturnValue>
@@ -18,4 +20,20 @@ export function isArrayBased(array: unknown[]): boolean
     if (array.length !== length)
         return false;
     return true;
+}
+
+export function loadEBDD(): MochaGlobals
+{
+    const context = { } as MochaGlobals;
+    interfaces.ebdd = ebdd;
+    try
+    {
+        const mocha = new Mocha({ ui: 'ebdd' });
+        mocha.suite.emit('pre-require', context, '', mocha);
+    }
+    finally
+    {
+        delete interfaces.ebdd;
+    }
+    return context;
 }

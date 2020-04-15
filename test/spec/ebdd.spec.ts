@@ -1,7 +1,7 @@
 import { ebdd }                                     from '../../src/mocha-interface';
 import { ok, strictEqual }                          from 'assert';
 import Mocha, { MochaGlobals, Suite, interfaces }   from 'mocha';
-import { SinonSandbox, createSandbox }              from 'sinon';
+import { SinonSandbox, SinonSpy, createSandbox }    from 'sinon';
 
 describe
 (
@@ -13,11 +13,25 @@ describe
             const bddSpy = sandbox.spy(interfaces, 'bdd');
             const mocha = new Mocha({ ui: 'ebdd' });
             const { suite } = mocha;
+            let actualListener: SinonSpy;
+            const recorder =
+            function (this: Suite, event: string, listener: any): Suite
+            {
+                actualListener = sandbox.spy(listener);
+                const suite = this.addListener(event, actualListener);
+                return suite;
+            };
+            sandbox.stub(suite, 'on').callsFake(recorder);
             const context = { } as MochaGlobals;
-            suite.emit('pre-require', context, '', mocha);
+            const file = '?';
+            suite.emit('pre-require', context, file, mocha);
             ok(bddSpy.calledOnce);
             ok(bddSpy.calledWithExactly(suite));
+            ok(actualListener!.calledOnce);
+            ok(actualListener!.calledWithExactly(context, file, mocha));
             strictEqual(typeof context.only, 'function');
+            strictEqual(typeof context.skip, 'function');
+            strictEqual(typeof context.when, 'function');
         }
 
         let sandbox: SinonSandbox;
@@ -26,7 +40,7 @@ describe
         (
             () =>
             {
-                Mocha.interfaces.ebdd = ebdd;
+                interfaces.ebdd = ebdd;
                 sandbox = createSandbox();
             },
         );
@@ -37,7 +51,7 @@ describe
         (
             () =>
             {
-                delete Mocha.interfaces.ebdd;
+                delete interfaces.ebdd;
                 sandbox = null as any;
             },
         );

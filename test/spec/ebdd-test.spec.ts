@@ -4,13 +4,11 @@ import
     ParamInfo,
     ParameterizedTestFunction,
     UnparameterizedTestFunction,
-    createInterface,
 }
 from '../../src/mocha-interface';
-import { CallCountingStub, isArrayBased }                                       from './utils';
+import { CallCountingStub, isArrayBased, loadEBDD }                             from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
 import
-Mocha,
 {
     AsyncFunc,
     Done,
@@ -275,10 +273,7 @@ describe
                         );
                     },
                 );
-                const mocha = new Mocha();
-                const context = { } as MochaGlobals;
-                createInterface.call(mocha.suite, context, '', mocha);
-                ebdd = context;
+                ebdd = loadEBDD();
             },
         );
 

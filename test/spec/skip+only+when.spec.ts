@@ -1,6 +1,6 @@
-import { ParamInfo, createInterface }   from '../../src/mocha-interface';
-import { throws }                       from 'assert';
-import Mocha, { MochaGlobals }          from 'mocha';
+import { ParamInfo }    from '../../src/mocha-interface';
+import { loadEBDD }     from './utils';
+import { throws }       from 'assert';
 
 describe
 (
@@ -15,10 +15,7 @@ describe
         (
             () =>
             {
-                const context = { } as MochaGlobals;
-                const mocha = new Mocha();
-                createInterface.call(mocha.suite, context, '', mocha);
-                ({ only, skip } = context);
+                ({ only, skip } = loadEBDD());
             },
         );
 
@@ -26,8 +23,7 @@ describe
         (
             () =>
             {
-                const context = { } as MochaGlobals;
-                ({ only, skip } = context);
+                ({ only, skip } = { } as any);
             },
         );
 
