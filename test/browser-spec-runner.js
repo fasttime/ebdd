@@ -218,8 +218,20 @@
         };
         return boundFn;
     }
-    function createInterface(context, file, mocha) {
-        var _this = this;
+    function createBDDInterface(context, file, mocha) {
+        var _a;
+        var bdd = mocha.constructor.interfaces.bdd;
+        var maxListeners = this.getMaxListeners !== undefined ?
+            this.getMaxListeners() : (_a = this._maxListeners) !== null && _a !== void 0 ? _a : 0;
+        this.setMaxListeners(0);
+        bdd(this);
+        var listeners = this.listeners('pre-require');
+        var bddPreRequireListener = listeners[listeners.length - 1];
+        this.removeListener('pre-require', bddPreRequireListener);
+        this.setMaxListeners(maxListeners);
+        bddPreRequireListener.call(this, context, file, mocha);
+    }
+    function createEBDDInterface(context, file, mocha) {
         function createAdaptableSuiteFunction() {
             function adapt(adapter) {
                 validateAdapter(adapter);
@@ -422,25 +434,7 @@
                     return bddXit;
             }
         }
-        {
-            var pickBDDPreRequireListener = function () {
-                Mocha_1.interfaces.bdd(_this);
-                var listeners = _this.listeners('pre-require');
-                bddPreRequireListener_1 = listeners[listeners.length - 1];
-                _this.removeListener('pre-require', bddPreRequireListener_1);
-            };
-            var Mocha_1 = mocha.constructor;
-            var bddPreRequireListener_1;
-            if (this.getMaxListeners) {
-                var maxListeners = this.getMaxListeners();
-                this.setMaxListeners(0);
-                pickBDDPreRequireListener();
-                this.setMaxListeners(maxListeners);
-            }
-            else
-                pickBDDPreRequireListener();
-            bddPreRequireListener_1.call(this, context, file, mocha);
-        }
+        createBDDInterface.call(this, context, file, mocha);
         var bddDescribe = context.describe, bddIt = context.it;
         var bddXit = function (title) { return bddIt(title); };
         context.describe = context.context =
@@ -488,7 +482,7 @@
         throw TypeError(message);
     }
     function ebdd(suite) {
-        suite.on('pre-require', createInterface);
+        suite.on('pre-require', createEBDDInterface);
     }
     function makeParamList(paramList, mode) {
         paramList.mode = mode;
@@ -617,13 +611,13 @@
     }
     function loadEBDD() {
         var context = {};
-        Mocha__default.interfaces.ebdd = ebdd;
+        Mocha.interfaces.ebdd = ebdd;
         try {
             var mocha_1 = new Mocha__default({ ui: 'ebdd' });
             mocha_1.suite.emit('pre-require', context, '', mocha_1);
         }
         finally {
-            delete Mocha__default.interfaces.ebdd;
+            delete Mocha.interfaces.ebdd;
         }
         return context;
     }
@@ -4084,48 +4078,71 @@
     });
 
     describe('ebdd sets up correctly', function () {
-        function test() {
-            var bddSpy = sandbox.spy(Mocha.interfaces, 'bdd');
-            var mocha = new Mocha__default({ ui: 'ebdd' });
+        function test(mocha, ebddThis) {
+            if (mocha === void 0) { mocha = new Mocha__default(); }
             var suite = mocha.suite;
-            var actualListener;
-            var recorder = function (event, listener) {
-                actualListener = sandbox.spy(listener);
-                var suite = this.addListener(event, actualListener);
+            suite.removeAllListeners();
+            ebdd.call(ebddThis, suite);
+            var listeners = suite.listeners('pre-require');
+            strictEqual(listeners.length, 1);
+            var bddPreRequireListener;
+            sandbox.stub(suite, 'on').callsFake(function (event, listener) {
+                bddPreRequireListener = sandbox.spy(listener);
+                var suite = this.addListener(event, bddPreRequireListener);
                 return suite;
-            };
-            sandbox.stub(suite, 'on').callsFake(recorder);
+            });
+            var bddSpy = sandbox.spy(Mocha.interfaces, 'bdd');
             var context = {};
             var file = '?';
             suite.emit('pre-require', context, file, mocha);
             ok(bddSpy.calledOnce);
             ok(bddSpy.calledWithExactly(suite));
-            ok(actualListener.calledOnce);
-            ok(actualListener.calledWithExactly(context, file, mocha));
+            ok(bddPreRequireListener.calledOnce);
+            ok(bddPreRequireListener.calledWithExactly(context, file, mocha));
             strictEqual(typeof context.only, 'function');
             strictEqual(typeof context.skip, 'function');
             strictEqual(typeof context.when, 'function');
         }
         var sandbox;
         beforeEach(function () {
-            Mocha__default.interfaces.ebdd = ebdd;
+            Mocha.interfaces.ebdd = ebdd;
             sandbox = sinon.createSandbox();
         });
         afterEach(function () { return sandbox.restore(); });
         after(function () {
-            delete Mocha__default.interfaces.ebdd;
+            delete Mocha.interfaces.ebdd;
             sandbox = null;
         });
         it('normally', function () {
             test();
         });
-        it('without maxListeners', function () {
-            var prototype = Mocha.Suite.prototype;
-            if (!('getMaxListeners' in prototype && 'setMaxListeners' in prototype))
-                this.skip();
-            sandbox.stub(prototype, 'getMaxListeners').value(undefined);
-            sandbox.stub(prototype, 'setMaxListeners').value(undefined);
-            test();
+        // getMaxListeners is not available in Node.js < 1.
+        describe('without getMaxListeners', function () {
+            it('with _maxListeners not set', function () {
+                var prototype = Mocha.Suite.prototype;
+                if (!('getMaxListeners' in prototype))
+                    this.skip();
+                sandbox.stub(prototype, 'getMaxListeners').value(undefined);
+                var mocha = new Mocha__default();
+                delete mocha.suite._maxListeners;
+                test(mocha);
+            });
+            it('with _maxListeners set', function () {
+                var prototype = Mocha.Suite.prototype;
+                if (!('getMaxListeners' in prototype))
+                    this.skip();
+                sandbox.stub(prototype, 'getMaxListeners').value(undefined);
+                var mocha = new Mocha__default();
+                mocha.suite.setMaxListeners(10);
+                test(mocha);
+            });
+        });
+        // In older versions of Mocha, the test UI function is called with the Mocha object as this.
+        // This behavior has changhed in Mocha 6.0.1.
+        // With newer versions, the Mocha object is not known until the pre-require callback runs.
+        it('when called on Mocha object', function () {
+            var mocha = new Mocha__default();
+            test(mocha, mocha);
         });
     });
 

@@ -211,8 +211,20 @@
         };
         return boundFn;
     }
-    function createInterface(context, file, mocha) {
-        var _this = this;
+    function createBDDInterface(context, file, mocha) {
+        var _a;
+        var bdd = mocha.constructor.interfaces.bdd;
+        var maxListeners = this.getMaxListeners !== undefined ?
+            this.getMaxListeners() : (_a = this._maxListeners) !== null && _a !== void 0 ? _a : 0;
+        this.setMaxListeners(0);
+        bdd(this);
+        var listeners = this.listeners('pre-require');
+        var bddPreRequireListener = listeners[listeners.length - 1];
+        this.removeListener('pre-require', bddPreRequireListener);
+        this.setMaxListeners(maxListeners);
+        bddPreRequireListener.call(this, context, file, mocha);
+    }
+    function createEBDDInterface(context, file, mocha) {
         function createAdaptableSuiteFunction() {
             function adapt(adapter) {
                 validateAdapter(adapter);
@@ -415,25 +427,7 @@
                     return bddXit;
             }
         }
-        {
-            var pickBDDPreRequireListener = function () {
-                Mocha_1.interfaces.bdd(_this);
-                var listeners = _this.listeners('pre-require');
-                bddPreRequireListener_1 = listeners[listeners.length - 1];
-                _this.removeListener('pre-require', bddPreRequireListener_1);
-            };
-            var Mocha_1 = mocha.constructor;
-            var bddPreRequireListener_1;
-            if (this.getMaxListeners) {
-                var maxListeners = this.getMaxListeners();
-                this.setMaxListeners(0);
-                pickBDDPreRequireListener();
-                this.setMaxListeners(maxListeners);
-            }
-            else
-                pickBDDPreRequireListener();
-            bddPreRequireListener_1.call(this, context, file, mocha);
-        }
+        createBDDInterface.call(this, context, file, mocha);
         var bddDescribe = context.describe, bddIt = context.it;
         var bddXit = function (title) { return bddIt(title); };
         context.describe = context.context =
@@ -481,7 +475,7 @@
         throw TypeError(message);
     }
     function ebdd(suite) {
-        suite.on('pre-require', createInterface);
+        suite.on('pre-require', createEBDDInterface);
     }
     function makeParamList(paramList, mode) {
         paramList.mode = mode;

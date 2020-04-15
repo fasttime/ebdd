@@ -147,7 +147,7 @@ export type ParamArrayLike<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;
 
 type ParamList<ParamListType extends readonly unknown[]> = ParamListType & { readonly mode: Mode; };
 
-type ParamOrParamInfo<ParamType> = ParamType | ParamInfo<ParamType>;
+export type ParamOrParamInfo<ParamType> = ParamType | ParamInfo<ParamType>;
 
 interface ParameterizableFunction<SubType extends ParameterizableFunction<SubType>>
 {
@@ -284,7 +284,22 @@ export function bindArgumentsButLast
     return boundFn;
 }
 
-function createInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
+function createBDDInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
+{
+    const { bdd } = mocha.constructor.interfaces;
+    const maxListeners =
+    this.getMaxListeners !== undefined ?
+    this.getMaxListeners() : (this as { _maxListeners?: number; })._maxListeners ?? 0;
+    this.setMaxListeners(0);
+    bdd(this);
+    const listeners = this.listeners('pre-require');
+    const bddPreRequireListener = listeners[listeners.length - 1] as typeof createBDDInterface;
+    this.removeListener('pre-require', bddPreRequireListener);
+    this.setMaxListeners(maxListeners);
+    bddPreRequireListener.call(this, context, file, mocha);
+}
+
+function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
 {
     function createAdaptableSuiteFunction(): AdaptableSuiteFunction
     {
@@ -589,31 +604,9 @@ function createInterface(this: Suite, context: MochaGlobals, file: string, mocha
         }
     }
 
-    {
-        const pickBDDPreRequireListener =
-        (): void =>
-        {
-            Mocha.interfaces.bdd(this);
-            const listeners = this.listeners('pre-require');
-            bddPreRequireListener = listeners[listeners.length - 1] as typeof createInterface;
-            this.removeListener('pre-require', bddPreRequireListener);
-        };
-        const Mocha = mocha.constructor;
-        let bddPreRequireListener: typeof createInterface;
-        if (this.getMaxListeners as unknown)
-        {
-            const maxListeners = this.getMaxListeners();
-            this.setMaxListeners(0);
-            pickBDDPreRequireListener();
-            this.setMaxListeners(maxListeners);
-        }
-        else
-            pickBDDPreRequireListener();
-        bddPreRequireListener!.call(this, context, file, mocha);
-    }
+    createBDDInterface.call(this, context, file, mocha);
     const { describe: bddDescribe, it: bddIt } = context;
     const bddXit = (title: string): Test => bddIt(title);
-
     context.describe = context.context =
     createAdaptableSuiteFunction() as SuiteFunction;
     context.xdescribe = context.xcontext =
@@ -678,7 +671,7 @@ function createParamLists
 
 export function ebdd(suite: Suite): void
 {
-    suite.on('pre-require', createInterface);
+    suite.on('pre-require', createEBDDInterface);
 }
 
 function makeParamList

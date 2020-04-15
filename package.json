@@ -25,7 +25,7 @@
   "scripts": {
     "build": "npm install && gulp",
     "node-test": "node -- node-test/node_modules/.bin/mocha --require=./test/node-test-adapter --check-leaks node-test/test/**/*.spec.js",
-    "prepare-node-test": "node build/prepare-node-test",
+    "prepare-node-test": "node build/prepare-node-test && npm run node-test",
     "prepare": "node build/patch-sinon",
     "test": "TS_NODE_PROJECT=test/tsconfig.json mocha --require=ts-node/register --check-leaks test/**/*.spec.ts"
   },

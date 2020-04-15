@@ -8,27 +8,34 @@ describe
     'ebdd sets up correctly',
     () =>
     {
-        function test(): void
+        function test(mocha: Mocha = new Mocha(), ebddThis?: Mocha): void
         {
-            const bddSpy = sandbox.spy(interfaces, 'bdd');
-            const mocha = new Mocha({ ui: 'ebdd' });
             const { suite } = mocha;
-            let actualListener: SinonSpy;
-            const recorder =
-            function (this: Suite, event: string, listener: any): Suite
-            {
-                actualListener = sandbox.spy(listener);
-                const suite = this.addListener(event, actualListener);
-                return suite;
-            };
-            sandbox.stub(suite, 'on').callsFake(recorder);
+            suite.removeAllListeners();
+            ebdd.call(ebddThis, suite);
+            const listeners = suite.listeners('pre-require');
+
+            strictEqual(listeners.length, 1);
+
+            let bddPreRequireListener: SinonSpy;
+            sandbox.stub(suite, 'on').callsFake
+            (
+                function (this: Suite, event: string, listener: any): Suite
+                {
+                    bddPreRequireListener = sandbox.spy(listener);
+                    const suite = this.addListener(event, bddPreRequireListener);
+                    return suite;
+                },
+            );
+            const bddSpy = sandbox.spy(interfaces, 'bdd');
             const context = { } as MochaGlobals;
             const file = '?';
             suite.emit('pre-require', context, file, mocha);
+
             ok(bddSpy.calledOnce);
             ok(bddSpy.calledWithExactly(suite));
-            ok(actualListener!.calledOnce);
-            ok(actualListener!.calledWithExactly(context, file, mocha));
+            ok(bddPreRequireListener!.calledOnce);
+            ok(bddPreRequireListener!.calledWithExactly(context, file, mocha));
             strictEqual(typeof context.only, 'function');
             strictEqual(typeof context.skip, 'function');
             strictEqual(typeof context.when, 'function');
@@ -65,17 +72,54 @@ describe
             },
         );
 
+        // getMaxListeners is not available in Node.js < 1.
+        describe
+        (
+            'without getMaxListeners',
+            () =>
+            {
+                it
+                (
+                    'with _maxListeners not set',
+                    function ()
+                    {
+                        const { prototype } = Suite;
+                        if (!('getMaxListeners' in prototype))
+                            this.skip();
+                        sandbox.stub(prototype, 'getMaxListeners').value(undefined);
+                        const mocha = new Mocha();
+                        delete (mocha.suite as { _maxListeners?: number; })._maxListeners;
+                        test(mocha);
+                    },
+                );
+
+                it
+                (
+                    'with _maxListeners set',
+                    function ()
+                    {
+                        const { prototype } = Suite;
+                        if (!('getMaxListeners' in prototype))
+                            this.skip();
+                        sandbox.stub(prototype, 'getMaxListeners').value(undefined);
+                        const mocha = new Mocha();
+                        mocha.suite.setMaxListeners(10);
+                        test(mocha);
+                    },
+                );
+            },
+        );
+
+        // In older versions of Mocha, the test UI function is called with the Mocha object as this.
+        // This behavior has changhed in Mocha 6.0.1.
+        // With newer versions, the Mocha object is not known until the pre-require callback runs.
         it
         (
-            'without maxListeners',
-            function ()
+            'when called on Mocha object',
+            () =>
             {
-                const { prototype } = Suite;
-                if (!('getMaxListeners' in prototype && 'setMaxListeners' in prototype))
-                    this.skip();
-                sandbox.stub(prototype, 'getMaxListeners').value(undefined);
-                sandbox.stub(prototype, 'setMaxListeners').value(undefined);
-                test();
+                const mocha = new Mocha();
+                test(mocha, mocha);
             },
         );
     },
