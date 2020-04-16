@@ -2,6 +2,7 @@
 !.git*
 !/.npmrc
 /coverage
+/ebdd.js
 /node-test
 /node_modules
 /npm-debug.log
