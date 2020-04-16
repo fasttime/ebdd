@@ -1,4 +1,4 @@
-import { ebdd }                             from '../../src/mocha-interface';
+import { ebdd }                             from '../../src/ebdd';
 import Mocha, { MochaGlobals, interfaces }  from 'mocha';
 import { SinonStub }                        from 'sinon';
 

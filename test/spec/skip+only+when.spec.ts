@@ -1,4 +1,4 @@
-import { ParamInfo }    from '../../src/mocha-interface';
+import { ParamInfo }    from '../../src/ebdd';
 import { loadEBDD }     from './utils';
 import { throws }       from 'assert';
 

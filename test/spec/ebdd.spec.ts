@@ -1,4 +1,4 @@
-import { ebdd }                                     from '../../src/mocha-interface';
+import { ebdd }                                     from '../../src/ebdd';
 import { ok, strictEqual }                          from 'assert';
 import Mocha, { MochaGlobals, Suite, interfaces }   from 'mocha';
 import { SinonSandbox, SinonSpy, createSandbox }    from 'sinon';

@@ -3,6 +3,7 @@
 !/.npmrc
 /coverage
 /ebdd.js
+/lib
 /node-test
 /node_modules
 /npm-debug.log

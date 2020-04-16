@@ -10,7 +10,7 @@ task
         const { promises: { rmdir } } = require('fs');
 
         const paths =
-        ['.nyc_output', '.tmp-src', 'coverage', 'ebdd.js', 'test/browser-spec-runner.js'];
+        ['.nyc_output', '.tmp-src', 'coverage', 'ebdd.js', 'lib', 'test/browser-spec-runner.js'];
         const options = { recursive: true };
         await Promise.all(paths.map(path => rmdir(path, options)));
     },
@@ -80,10 +80,24 @@ task
     'compile',
     () =>
     {
+        const { include }       = require('gulp-ignore');
+        const gulpRename        = require('gulp-rename');
         const { createProject } = require('gulp-typescript');
+        const mergeStream       = require('merge-stream');
 
-        const tsResult = src('{src,test}/**/*.ts').pipe(createProject('tsconfig.json')());
-        const stream = tsResult.js.pipe(dest('.tmp-src'));
+        const { dts, js } = src('{src,test}/**/*.ts').pipe(createProject('tsconfig.json')());
+        const condition =
+        [
+            'src/**/append-to-tuple.d.ts',
+            'src/**/ebdd.d.ts',
+            'src/**/extensible-array.d.ts',
+        ];
+        const stream =
+        mergeStream
+        (
+            dts.pipe(include(condition)).pipe(gulpRename({ dirname: '' })).pipe(dest('lib')),
+            js.pipe(dest('.tmp-src')),
+        );
         return stream;
     },
 );
@@ -113,7 +127,7 @@ task
     {
         const { homepage, version } = require('./package.json');
 
-        const inputOptions = { input: '.tmp-src/src/ebdd-main.js' };
+        const inputOptions = { input: '.tmp-src/src/main.js' };
         const outputOptions = { banner: `// EBDD ${version} – ${homepage}\n`, file: 'ebdd.js' };
         await bundle(inputOptions, outputOptions);
     },

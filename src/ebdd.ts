@@ -1,5 +1,7 @@
-import ExtensibleArray  from './extensible-array';
-import TitleFormatter   from './title-formatter';
+import AppendToTuple                            from './append-to-tuple';
+import { bindArguments, bindArgumentsButLast }  from './bind-arguments';
+import ExtensibleArray                          from './extensible-array';
+import TitleFormatter                           from './title-formatter';
 import type
 {
     Context,
@@ -88,30 +90,6 @@ export interface AdaptableTestFunction extends UnparameterizedTestFunction
     <AdaptParamListType extends unknown[]>
     (adapter: TestAdapter<AdaptParamListType>) => UnparameterizedTestFunction<AdaptParamListType>;
 }
-
-declare namespace AppendToTuple
-{
-    type AppendHelper
-    <TupleType extends unknown[], ElementType, ExtendedTupleType = OneMore<TupleType>> =
-    AsArray<
-    {
-        [KeyType in keyof ExtendedTupleType]:
-        KeyType extends keyof TupleType ? TupleType[KeyType] : ElementType;
-    }
-    >;
-
-    export type AppendToTuple<TupleType extends unknown[], ElementType> =
-    AppendHelper<TupleType, ElementType>;
-
-    type AsArray<TupleType> = TupleType extends unknown[] ? TupleType : never;
-
-    type OneMore<TupleType extends unknown[]> =
-    ((arg0: unknown, ...args: TupleType) => unknown) extends
-    (...args: infer ElementType) => unknown ?
-    ElementType : never;
-}
-type AppendToTuple<TupleType extends unknown[], ElementType> =
-AppendToTuple.AppendToTuple<TupleType, ElementType>;
 
 enum Brand
 {
@@ -250,38 +228,6 @@ export class SpecItemArray<SpecItemType extends Suite | Test> extends Extensible
             return ms;
         }
     }
-}
-
-export function bindArguments
-<ThisType, ArgListType extends unknown[], RetType>
-(fn: (this: ThisType, ...args: ArgListType) => RetType, args: ArgListType):
-(this: ThisType) => RetType
-{
-    const boundFn =
-    function (this: ThisType): RetType
-    {
-        const returnValue = fn.apply(this, args);
-        return returnValue;
-    };
-    return boundFn;
-}
-
-export function bindArgumentsButLast
-<ThisType, ArgListType extends unknown[], LastArgType, RetType>
-(
-    fn:     (this: ThisType, ...args: AppendToTuple<ArgListType, LastArgType>) => RetType,
-    args:   ArgListType,
-):
-(this: ThisType, lastArg: LastArgType) => RetType
-{
-    const boundFn =
-    function (this: ThisType, lastArg: LastArgType): RetType
-    {
-        const argsAndLast = [...args, lastArg] as AppendToTuple<ArgListType, LastArgType>;
-        const returnValue = fn.apply(this, argsAndLast);
-        return returnValue;
-    };
-    return boundFn;
 }
 
 function createBDDInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void

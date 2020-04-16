@@ -10,6 +10,29 @@
         mocha.run();
     });
 
+    var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++)
+            for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
+                r[k] = a[j];
+        return r;
+    };
+    function bindArguments(fn, args) {
+        var boundFn = function () {
+            var returnValue = fn.apply(this, args);
+            return returnValue;
+        };
+        return boundFn;
+    }
+    function bindArgumentsButLast(fn, args) {
+        var boundFn = function (lastArg) {
+            var argsAndLast = __spreadArrays(args, [lastArg]);
+            var returnValue = fn.apply(this, argsAndLast);
+            return returnValue;
+        };
+        return boundFn;
+    }
+
     var ExtensibleArray = function () { };
     ExtensibleArray.prototype = Array.prototype;
 
@@ -147,7 +170,7 @@
             d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
         };
     })();
-    var __spreadArrays = (undefined && undefined.__spreadArrays) || function () {
+    var __spreadArrays$1 = (undefined && undefined.__spreadArrays) || function () {
         for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
         for (var r = Array(s), k = 0, i = 0; i < il; i++)
             for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
@@ -203,21 +226,6 @@
         };
         return SpecItemArray;
     }(ExtensibleArray));
-    function bindArguments(fn, args) {
-        var boundFn = function () {
-            var returnValue = fn.apply(this, args);
-            return returnValue;
-        };
-        return boundFn;
-    }
-    function bindArgumentsButLast(fn, args) {
-        var boundFn = function (lastArg) {
-            var argsAndLast = __spreadArrays(args, [lastArg]);
-            var returnValue = fn.apply(this, argsAndLast);
-            return returnValue;
-        };
-        return boundFn;
-    }
     function createBDDInterface(context, file, mocha) {
         var _this = this;
         var _a;
@@ -534,7 +542,7 @@
             var baseMode = baseParamList.mode;
             for (var _a = 0, newParamLists_1 = newParamLists; _a < newParamLists_1.length; _a++) {
                 var newParamList = newParamLists_1[_a];
-                var paramList = __spreadArrays(baseParamList, newParamList);
+                var paramList = __spreadArrays$1(baseParamList, newParamList);
                 var mode = maxMode(newParamList.mode, baseMode);
                 makeParamList(paramList, mode);
                 paramLists.push(paramList);
@@ -544,7 +552,7 @@
     }
     function onlyAll(baseParamLists) {
         var paramLists = baseParamLists.map(function (baseParamList) {
-            var paramList = __spreadArrays(baseParamList);
+            var paramList = __spreadArrays$1(baseParamList);
             var mode = maxMode(Mode.ONLY, baseParamList.mode);
             makeParamList(paramList, mode);
             return paramList;
@@ -553,7 +561,7 @@
     }
     function skipAll(baseParamLists) {
         var paramLists = baseParamLists.map(function (baseParamList) {
-            var paramList = __spreadArrays(baseParamList);
+            var paramList = __spreadArrays$1(baseParamList);
             makeParamList(paramList, Mode.SKIP);
             return paramList;
         });
@@ -3404,7 +3412,7 @@
       _throws(true, block, error, message);
     }
 
-    var __spreadArrays$1 = (undefined && undefined.__spreadArrays) || function () {
+    var __spreadArrays$2 = (undefined && undefined.__spreadArrays) || function () {
         for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
         for (var r = Array(s), k = 0, i = 0; i < il; i++)
             for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
@@ -3461,7 +3469,7 @@
             });
             // Return value
             ok(isArrayBased(actualDescribeReturnValue));
-            deepStrictEqual(__spreadArrays$1(actualDescribeReturnValue), bddDescribeAnyCalls.map(function (_a) {
+            deepStrictEqual(__spreadArrays$2(actualDescribeReturnValue), bddDescribeAnyCalls.map(function (_a) {
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
@@ -3666,7 +3674,7 @@
             var adaptParams = [42, 'foo', {}];
             var adapter = sinon.spy();
             var adaptedDescribe = ebdd.describe.adapt(adapter);
-            adaptedDescribe.apply(void 0, __spreadArrays$1(['some title', suiteCallback], adaptParams));
+            adaptedDescribe.apply(void 0, __spreadArrays$2(['some title', suiteCallback], adaptParams));
             ok(!('adapt' in adaptedDescribe));
             ok('only' in adaptedDescribe);
             ok('per' in adaptedDescribe);
@@ -3682,7 +3690,7 @@
             var adaptParams = [42, 'foo', {}];
             var adapter = sinon.spy();
             var adaptedDescribe = ebdd.describe.adapt(adapter);
-            adaptedDescribe.per(getTestParams()).apply(void 0, __spreadArrays$1(['some title', suiteCallback], adaptParams));
+            adaptedDescribe.per(getTestParams()).apply(void 0, __spreadArrays$2(['some title', suiteCallback], adaptParams));
             var bddDescribeAnyList = [
                 bddDescribe,
                 bddDescribeOnly,
@@ -3754,7 +3762,7 @@
         });
     });
 
-    var __spreadArrays$2 = (undefined && undefined.__spreadArrays) || function () {
+    var __spreadArrays$3 = (undefined && undefined.__spreadArrays) || function () {
         for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
         for (var r = Array(s), k = 0, i = 0; i < il; i++)
             for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
@@ -3828,15 +3836,15 @@
                 if (actualTestCallback) {
                     testCallbackSpy.resetHistory();
                     var expectedThis = {};
-                    (_b = actualTestCallback).call.apply(_b, __spreadArrays$2([expectedThis], extraArgs));
+                    (_b = actualTestCallback).call.apply(_b, __spreadArrays$3([expectedThis], extraArgs));
                     var lastCall = testCallbackSpy.lastCall;
                     deepStrictEqual(lastCall.thisValue, expectedThis);
-                    deepStrictEqual(lastCall.args, __spreadArrays$2(expectedParamsList[index], extraArgs));
+                    deepStrictEqual(lastCall.args, __spreadArrays$3(expectedParamsList[index], extraArgs));
                 }
             });
             // Return value
             ok(isArrayBased(actualItReturnValue));
-            deepStrictEqual(__spreadArrays$2(actualItReturnValue), bddItAnyCalls.map(function (_a) {
+            deepStrictEqual(__spreadArrays$3(actualItReturnValue), bddItAnyCalls.map(function (_a) {
                 var returnValue = _a.returnValue;
                 return returnValue;
             }));
@@ -4006,7 +4014,7 @@
             var adaptParams = [42, 'foo', {}];
             var adapter = sinon.spy();
             var adaptedIt = ebdd.it.adapt(adapter);
-            adaptedIt.apply(void 0, __spreadArrays$2(['some title', testCallback], adaptParams));
+            adaptedIt.apply(void 0, __spreadArrays$3(['some title', testCallback], adaptParams));
             ok(!('adapt' in adaptedIt));
             ok('only' in adaptedIt);
             ok('per' in adaptedIt);
@@ -4022,7 +4030,7 @@
             var adaptParams = [42, 'foo', {}];
             var adapter = sinon.spy();
             var adaptedIt = ebdd.it.adapt(adapter);
-            adaptedIt.per(getTestParams()).apply(void 0, __spreadArrays$2(['some title', testCallback], adaptParams));
+            adaptedIt.per(getTestParams()).apply(void 0, __spreadArrays$3(['some title', testCallback], adaptParams));
             var bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
             var bddItAnyCalls = getCallsInExpectedOrder(bddCallDataList);
             bddItAnyCalls.forEach(function (bddItAnyCall, index) {

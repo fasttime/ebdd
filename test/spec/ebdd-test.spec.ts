@@ -5,7 +5,7 @@ import
     ParameterizedTestFunction,
     UnparameterizedTestFunction,
 }
-from '../../src/mocha-interface';
+from '../../src/ebdd';
 import { CallCountingStub, isArrayBased, loadEBDD }                             from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
 import
