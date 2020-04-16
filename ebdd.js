@@ -212,16 +212,21 @@
         return boundFn;
     }
     function createBDDInterface(context, file, mocha) {
+        var _this = this;
         var _a;
+        var setMaxListeners = function (maxListeners) {
+            var _a, _b;
+            (_b = (_a = _this).setMaxListeners) === null || _b === void 0 ? void 0 : _b.call(_a, maxListeners);
+        };
         var bdd = mocha.constructor.interfaces.bdd;
         var maxListeners = this.getMaxListeners !== undefined ?
             this.getMaxListeners() : (_a = this._maxListeners) !== null && _a !== void 0 ? _a : 0;
-        this.setMaxListeners(0);
+        setMaxListeners(0);
         bdd(this);
         var listeners = this.listeners('pre-require');
         var bddPreRequireListener = listeners[listeners.length - 1];
         this.removeListener('pre-require', bddPreRequireListener);
-        this.setMaxListeners(maxListeners);
+        setMaxListeners(maxListeners);
         bddPreRequireListener.call(this, context, file, mocha);
     }
     function createEBDDInterface(context, file, mocha) {

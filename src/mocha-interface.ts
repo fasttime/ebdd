@@ -286,16 +286,21 @@ export function bindArgumentsButLast
 
 function createBDDInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
 {
+    const setMaxListeners =
+    (maxListeners: number): void =>
+    {
+        (this as { setMaxListeners?: (n: number) => Suite; }).setMaxListeners?.(maxListeners);
+    };
     const { bdd } = mocha.constructor.interfaces;
     const maxListeners =
     this.getMaxListeners !== undefined ?
     this.getMaxListeners() : (this as { _maxListeners?: number; })._maxListeners ?? 0;
-    this.setMaxListeners(0);
+    setMaxListeners(0);
     bdd(this);
     const listeners = this.listeners('pre-require');
     const bddPreRequireListener = listeners[listeners.length - 1] as typeof createBDDInterface;
     this.removeListener('pre-require', bddPreRequireListener);
-    this.setMaxListeners(maxListeners);
+    setMaxListeners(maxListeners);
     bddPreRequireListener.call(this, context, file, mocha);
 }
 

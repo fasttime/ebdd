@@ -219,16 +219,21 @@
         return boundFn;
     }
     function createBDDInterface(context, file, mocha) {
+        var _this = this;
         var _a;
+        var setMaxListeners = function (maxListeners) {
+            var _a, _b;
+            (_b = (_a = _this).setMaxListeners) === null || _b === void 0 ? void 0 : _b.call(_a, maxListeners);
+        };
         var bdd = mocha.constructor.interfaces.bdd;
         var maxListeners = this.getMaxListeners !== undefined ?
             this.getMaxListeners() : (_a = this._maxListeners) !== null && _a !== void 0 ? _a : 0;
-        this.setMaxListeners(0);
+        setMaxListeners(0);
         bdd(this);
         var listeners = this.listeners('pre-require');
         var bddPreRequireListener = listeners[listeners.length - 1];
         this.removeListener('pre-require', bddPreRequireListener);
-        this.setMaxListeners(maxListeners);
+        setMaxListeners(maxListeners);
         bddPreRequireListener.call(this, context, file, mocha);
     }
     function createEBDDInterface(context, file, mocha) {
@@ -4116,8 +4121,8 @@
         it('normally', function () {
             test();
         });
-        // getMaxListeners is not available in Node.js < 1.
-        describe('without getMaxListeners', function () {
+        // Suite.prototype.getMaxListeners does not exist in Node.js < 1.
+        describe('without getMaxListeners in suite', function () {
             it('with _maxListeners not set', function () {
                 var prototype = Mocha.Suite.prototype;
                 if (!('getMaxListeners' in prototype))
@@ -4136,6 +4141,17 @@
                 mocha.suite.setMaxListeners(10);
                 test(mocha);
             });
+        });
+        // Suite.prototype.getMaxListeners and Suite.prototype.setMaxListeners are both missing in
+        // browsers in older versions of Mocha.
+        it('without getMaxListeners and setMaxListener in suite', function () {
+            var prototype = Mocha.Suite.prototype;
+            if (!('setMaxListeners' in prototype))
+                this.skip();
+            if ('getMaxListeners' in prototype)
+                sandbox.stub(prototype, 'getMaxListeners').value(undefined);
+            sandbox.stub(prototype, 'setMaxListeners').value(undefined);
+            test();
         });
         // In older versions of Mocha, the test UI function is called with the Mocha object as this.
         // This behavior has changhed in Mocha 6.0.1.

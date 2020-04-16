@@ -72,10 +72,10 @@ describe
             },
         );
 
-        // getMaxListeners is not available in Node.js < 1.
+        // Suite.prototype.getMaxListeners does not exist in Node.js < 1.
         describe
         (
-            'without getMaxListeners',
+            'without getMaxListeners in suite',
             () =>
             {
                 it
@@ -107,6 +107,23 @@ describe
                         test(mocha);
                     },
                 );
+            },
+        );
+
+        // Suite.prototype.getMaxListeners and Suite.prototype.setMaxListeners are both missing in
+        // browsers in older versions of Mocha.
+        it
+        (
+            'without getMaxListeners and setMaxListener in suite',
+            function (): void
+            {
+                const { prototype } = Suite;
+                if (!('setMaxListeners' in prototype))
+                    this.skip();
+                if ('getMaxListeners' in prototype)
+                    sandbox.stub(prototype, 'getMaxListeners').value(undefined);
+                sandbox.stub(prototype, 'setMaxListeners').value(undefined);
+                test();
             },
         );
 
