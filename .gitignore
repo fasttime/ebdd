@@ -7,3 +7,4 @@
 /node-test
 /node_modules
 /npm-debug.log
+/test/browser-spec-runner.js

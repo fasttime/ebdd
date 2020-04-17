@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true,
+    "declaration": false,
     "module": "commonjs",
-    "outDir": "../node-test",
-    "strict": true,
-    "target": "es5"
+    "outDir": "../node-test"
   },
+  "extends": "../tsconfig.json",
   "include": [
     "../src",
     "spec"

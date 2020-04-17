@@ -10,7 +10,7 @@ task
         const { promises: { rmdir } } = require('fs');
 
         const paths =
-        ['.nyc_output', '.tmp-src', 'coverage', 'ebdd.js', 'lib', 'test/browser-spec-runner.js'];
+        ['.nyc_output', '.tmp-out', 'coverage', 'ebdd.js', 'lib', 'test/browser-spec-runner.js'];
         const options = { recursive: true };
         await Promise.all(paths.map(path => rmdir(path, options)));
     },
@@ -96,7 +96,7 @@ task
         mergeStream
         (
             dts.pipe(include(condition)).pipe(gulpRename({ dirname: '' })).pipe(dest('lib')),
-            js.pipe(dest('.tmp-src')),
+            js.pipe(dest('.tmp-out')),
         );
         return stream;
     },
@@ -127,7 +127,7 @@ task
     {
         const { homepage, version } = require('./package.json');
 
-        const inputOptions = { input: '.tmp-src/src/main.js' };
+        const inputOptions = { input: '.tmp-out/src/main.js' };
         const outputOptions = { banner: `// EBDD ${version} – ${homepage}\n`, file: 'ebdd.js' };
         await bundle(inputOptions, outputOptions);
     },
@@ -144,7 +144,7 @@ task
         const inputOptions =
         {
             external: ['mocha', 'sinon'],
-            input: '.tmp-src/test/browser-spec-runner.js',
+            input: '.tmp-out/test/browser-spec-runner.js',
             plugins: [builtins(), globals({ buffer: false })],
         };
         const outputOptions =
