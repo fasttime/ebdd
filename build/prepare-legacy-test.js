@@ -2,6 +2,8 @@
 
 'use strict';
 
+const NODE_LEGACY_DIR = 'test/node-legacy';
+
 function endOf(childProcess)
 {
     const executor =
@@ -10,17 +12,19 @@ function endOf(childProcess)
     return promise;
 }
 
-async function npm()
+async function npmInstall()
 {
     const { spawn }                             = require('child_process');
     const { promises: { mkdir, writeFile } }    = require('fs');
     const { EOL }                               = require('os');
+    const { join }                              = require('path');
 
-    await mkdir('node-test', { recursive: true });
+    await mkdir(NODE_LEGACY_DIR, { recursive: true });
     const pkg = { private: true, dependencies: { mocha: '3.5.3', sinon: '2.4.1' } };
     const contents = JSON.stringify(pkg, null, 2) + EOL;
-    await writeFile('node-test/package.json', contents);
-    const childProcess = spawn('npm', ['install'], { cwd: 'node-test', stdio: 'inherit' });
+    const path = join(NODE_LEGACY_DIR, 'package.json');
+    await writeFile(path, contents);
+    const childProcess = spawn('npm', ['install'], { cwd: NODE_LEGACY_DIR, stdio: 'inherit' });
     await endOf(childProcess);
 }
 
@@ -41,8 +45,8 @@ async function tsc()
         const { dirname }               = require('path');
 
         process.chdir(dirname(__dirname));
-        await rmdir('node-test', { recursive: true });
-        await Promise.all([tsc(), npm()]);
+        await rmdir(NODE_LEGACY_DIR, { recursive: true });
+        await Promise.all([tsc(), npmInstall()]);
     }
     catch (error)
     {

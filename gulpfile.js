@@ -10,7 +10,15 @@ task
         const { promises: { rmdir } } = require('fs');
 
         const paths =
-        ['.nyc_output', '.tmp-out', 'coverage', 'ebdd.js', 'lib', 'test/browser-spec-runner.js'];
+        [
+            '.nyc_output',
+            '.tmp-out',
+            'coverage',
+            'ebdd.js',
+            'lib',
+            'test/browser-spec-runner.js',
+            'test/node-legacy',
+        ];
         const options = { recursive: true };
         await Promise.all(paths.map(path => rmdir(path, options)));
     },
@@ -27,17 +35,11 @@ task
         lint
         (
             {
-                src: '{src,test}/**/*.ts',
+                src: ['src/**/*.ts', 'test/*.ts', 'test/spec/**/*.ts'],
                 parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
-                rules:
-                {
-                    '@typescript-eslint/no-empty-interface':
-                    ['error', { allowSingleExtends: true }],
-                    '@typescript-eslint/no-namespace': 'off',
-                },
             },
             {
-                src: ['test/**/*.js', '!test/browser-spec-runner.js'],
+                src: ['test/*.js', '!test/browser-spec-runner.js'],
             },
             {
                 src: ['build/**/*.js', 'gulpfile.js'],
@@ -67,7 +69,7 @@ task
             mochaPath,
             '--require=ts-node/register',
             '--check-leaks',
-            'test/**/*.spec.ts',
+            'test/spec/**/*.spec.ts',
         ];
         const forkOpts = { env: { ...process.env, TS_NODE_PROJECT: 'test/tsconfig.json' } };
         const childProcess = fork(nycPath, forkArgs, forkOpts);
@@ -85,7 +87,8 @@ task
         const { createProject } = require('gulp-typescript');
         const mergeStream       = require('merge-stream');
 
-        const { dts, js } = src('{src,test}/**/*.ts').pipe(createProject('tsconfig.json')());
+        const { dts, js } =
+        src(['{src,test}/**/*.ts', '!test/node-legacy/**']).pipe(createProject('tsconfig.json')());
         const condition =
         [
             'src/**/append-to-tuple.d.ts',

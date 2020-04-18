@@ -677,8 +677,8 @@ ParameterizableFunctionType
         only: { configurable: true, enumerable: true, get: only },
         skip: { configurable: true, enumerable: true, get: skip },
     };
-    const parameterizableFn: ParameterizableFunctionType =
-    Object.defineProperties(stub, descriptors);
+    const parameterizableFn =
+    Object.defineProperties(stub, descriptors) as ParameterizableFunctionType;
     return parameterizableFn;
 }
 

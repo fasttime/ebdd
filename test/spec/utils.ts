@@ -8,6 +8,11 @@ extends SinonStub<TArgs, TReturnValue>
     nextCallIndex?: number;
 }
 
+export function clear<T extends object>(): T
+{
+    return Object.create(null) as T;
+}
+
 export function isArrayBased(array: unknown[]): boolean
 {
     if (!(array instanceof Array))

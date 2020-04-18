@@ -1,6 +1,6 @@
-import { ParamInfo }    from '../../src/ebdd';
-import { loadEBDD }     from './utils';
-import { throws }       from 'assert';
+import { ParamInfo }        from '../../src/ebdd';
+import { clear, loadEBDD }  from './utils';
+import { throws }           from 'assert';
 
 describe
 (
@@ -23,7 +23,7 @@ describe
         (
             () =>
             {
-                ({ only, skip } = { } as any);
+                ({ only, skip } = clear());
             },
         );
 

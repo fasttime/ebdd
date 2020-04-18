@@ -2,8 +2,8 @@
 
 'use strict';
 
+var sinon   = require('./node-legacy/node_modules/sinon');
 var assert  = require('assert');
-var sinon   = require('../node-test/node_modules/sinon');
 
 (function ()
 {

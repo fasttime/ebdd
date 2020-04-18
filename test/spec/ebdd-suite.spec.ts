@@ -6,7 +6,7 @@ import
     UnparameterizedSuiteFunction,
 }
 from '../../src/ebdd';
-import { CallCountingStub, isArrayBased, loadEBDD }                             from './utils';
+import { CallCountingStub, clear, isArrayBased, loadEBDD }                      from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
 import { Context, MochaGlobals, Suite, SuiteFunction, interfaces }              from 'mocha';
 import { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
@@ -222,7 +222,7 @@ describe
         (
             () =>
             {
-                ({ bddDescribe, bddDescribeOnly, bddDescribeSkip, ebdd } = { } as any);
+                ({ bddDescribe, bddDescribeOnly, bddDescribeSkip, ebdd } = clear());
             },
         );
 

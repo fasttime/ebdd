@@ -1,4 +1,5 @@
 import { ebdd }                                     from '../../src/ebdd';
+import { clear }                                    from './utils';
 import { ok, strictEqual }                          from 'assert';
 import Mocha, { MochaGlobals, Suite, interfaces }   from 'mocha';
 import { SinonSandbox, SinonSpy, createSandbox }    from 'sinon';
@@ -59,7 +60,7 @@ describe
             () =>
             {
                 delete interfaces.ebdd;
-                sandbox = null as any;
+                ({ sandbox } = clear());
             },
         );
 

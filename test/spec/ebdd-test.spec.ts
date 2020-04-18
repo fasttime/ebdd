@@ -6,7 +6,7 @@ import
     UnparameterizedTestFunction,
 }
 from '../../src/ebdd';
-import { CallCountingStub, isArrayBased, loadEBDD }                             from './utils';
+import { CallCountingStub, clear, isArrayBased, loadEBDD }                      from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
 import
 {
@@ -283,7 +283,7 @@ describe
         (
             () =>
             {
-                ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent, sandbox } = { } as any);
+                ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent, sandbox } = clear());
             },
         );
 
