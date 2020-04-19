@@ -20,7 +20,7 @@ async function npmInstall()
     const { join }                              = require('path');
 
     await mkdir(NODE_LEGACY_DIR, { recursive: true });
-    const pkg = { private: true, dependencies: { mocha: '3.5.3', sinon: '2.4.1' } };
+    const pkg = { dependencies: { mocha: '3.5.3', sinon: '2.4.1' }, private: true };
     const contents = JSON.stringify(pkg, null, 2) + EOL;
     const path = join(NODE_LEGACY_DIR, 'package.json');
     await writeFile(path, contents);

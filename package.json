@@ -35,6 +35,7 @@
   "devDependencies": {
     "@fasttime/gulp-lint": "~0.26.0",
     "@types/mocha": "~7.0.2",
+    "@types/postrequire": "file:types/postrequire",
     "@types/sinon": "~9.0.0",
     "gulp": "~4.0.2",
     "gulp-ignore": "~3.0.0",
@@ -44,6 +45,7 @@
     "mocha": "~7.1.1",
     "mocha-bar": "~0.1.0",
     "nyc": "~15.0.1",
+    "postrequire": "~0.1.1",
     "rollup": "~2.6.1",
     "rollup-plugin-node-builtins": "~2.1.2",
     "rollup-plugin-node-globals": "~1.4.0",

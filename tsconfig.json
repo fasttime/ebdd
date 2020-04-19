@@ -6,11 +6,11 @@
     "strict": true,
     "target": "es5"
   },
+  "exclude": [
+    "test/node-legacy"
+  ],
   "include": [
     "src",
     "test"
-  ],
-  "exclude": [
-    "test/node-legacy"
   ]
 }

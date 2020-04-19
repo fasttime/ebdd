@@ -6,7 +6,7 @@ import { SinonSandbox, SinonSpy, createSandbox }    from 'sinon';
 
 describe
 (
-    'ebdd sets up correctly',
+    'EBDD initializes correctly',
     () =>
     {
         function test(mocha: Mocha = new Mocha(), ebddThis?: Mocha): void
