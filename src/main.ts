@@ -18,7 +18,7 @@ if (typeof module !== 'undefined')
 }
 if (typeof self !== 'undefined')
 {
-    if ('Mocha' in self)
+    if ((self as { Mocha?: unknown; }).Mocha !== undefined)
         registerUI();
     else
     {
@@ -28,8 +28,11 @@ if (typeof self !== 'undefined')
                 set:
                 (value: unknown): void =>
                 {
-                    defineMocha({ value, writable: true, enumerable: true });
-                    registerUI();
+                    if (value !== undefined)
+                    {
+                        defineMocha({ value, writable: true, enumerable: true });
+                        registerUI();
+                    }
                 },
                 configurable: true,
             },
