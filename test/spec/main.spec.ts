@@ -1,59 +1,18 @@
-import { ebdd }                 from '../../src/ebdd';
-import { strictEqual, throws }  from 'assert';
-import postrequire              from 'postrequire';
+import { ebdd }                             from '../../src/ebdd';
+import { strictEqual, throws }              from 'assert';
+import postrequire, { PostrequireStubs }    from 'postrequire';
 
-function requireMain(): unknown
+function requireMain(stubs?: Readonly<PostrequireStubs>): unknown
 {
     try
     {
-        const returnValue = postrequire('../../src/main') as unknown;
+        const returnValue = postrequire('../../src/main', stubs) as unknown;
         return returnValue;
     }
     finally
     {
-        // Very old versions of Node.js unexpectedly define the global "paths".
+        // Node.js < 4 unexpectedly defines the global "paths".
         delete (global as NodeJS.Global & { paths: unknown; }).paths;
-    }
-}
-
-function requireMainWithoutModule(): unknown
-{
-    function doApply(fn: Function, thisValue: Function, args: unknown[]): unknown
-    {
-        if (fn.length === 5 && fn.name === '')
-        {
-            args[2] = undefined;
-            prototype.apply = apply;
-            prototype.call = call;
-        }
-        const returnValue =
-        (apply as (thisArg: any, args: any[]) => unknown).bind(fn)(thisValue, args);
-        return returnValue;
-    }
-
-    const { prototype } = Function;
-    const { apply, call } = prototype;
-    prototype.apply =
-    function (this: Function, thisValue: Function, args: unknown[]): unknown
-    {
-        const returnValue = doApply(this, thisValue, args);
-        return returnValue;
-    };
-    prototype.call =
-    function (thisValue: Function, ...args: unknown[]): unknown
-    {
-        const returnValue = doApply(this, thisValue, args);
-        return returnValue;
-    };
-    try
-    {
-        const returnValue = requireMain();
-        return returnValue;
-    }
-    finally
-    {
-        prototype.apply = apply;
-        prototype.call = call;
     }
 }
 
@@ -69,7 +28,7 @@ describe
             {
                 if (typeof self !== 'undefined')
                     this.skip();
-                throws(requireMainWithoutModule, Error);
+                throws(() => requireMain({ module: undefined }), Error);
             },
         );
 
