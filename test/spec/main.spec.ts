@@ -4,16 +4,8 @@ import postrequire, { PostrequireStubs }    from 'postrequire';
 
 function requireMain(stubs?: Readonly<PostrequireStubs>): unknown
 {
-    try
-    {
-        const returnValue = postrequire('../../src/main', stubs) as unknown;
-        return returnValue;
-    }
-    finally
-    {
-        // Node.js < 4 unexpectedly defines the global "paths".
-        delete (global as NodeJS.Global & { paths: unknown; }).paths;
-    }
+    const returnValue = postrequire('../../src/main', stubs) as unknown;
+    return returnValue;
 }
 
 describe
