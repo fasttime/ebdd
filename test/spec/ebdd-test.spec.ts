@@ -618,13 +618,15 @@ describe
         it
         (
             'it.adapt with undefined adapter function',
-            () => throws(() => ebdd.it.adapt(undefined as any), TypeError),
+            // @ts-expect-error
+            () => throws(() => ebdd.it.adapt(undefined), TypeError),
         );
 
         it
         (
             'it.adapt with invalid adapter function',
-            () => throws(() => ebdd.it.adapt({ } as any), TypeError),
+            // @ts-expect-error
+            () => throws(() => ebdd.it.adapt({ }), TypeError),
         );
 
         it
@@ -689,7 +691,8 @@ describe
                 const fn =
                 (): void =>
                 { };
-                throws(() => ebdd.it(undefined as any, fn), TypeError);
+                // @ts-expect-error
+                throws(() => ebdd.it(undefined, fn), TypeError);
             },
         );
 
@@ -701,20 +704,22 @@ describe
                 const fn =
                 (): void =>
                 { };
-                throws(() => ebdd.it({ } as any, fn), TypeError);
+                // @ts-expect-error
+                throws(() => ebdd.it({ }, fn), TypeError);
             },
         );
 
         it
         (
             'unparameterized it with undefined callback function',
-            () => throws(() => ebdd.it('test', undefined as any), TypeError),
+            () => throws(() => ebdd.it('test', undefined), TypeError),
         );
 
         it
         (
             'unparameterized it with invalid callback function',
-            () => throws(() => ebdd.it('test', { } as any), TypeError),
+            // @ts-expect-error
+            () => throws(() => ebdd.it('test', { }), TypeError),
         );
 
         it
@@ -725,7 +730,8 @@ describe
                 const fn =
                 (arg0: never, arg1: never): void =>
                 { };
-                throws(() => ebdd.it('test', fn as any), RangeError);
+                // @ts-expect-error
+                throws(() => ebdd.it('test', fn), RangeError);
             },
         );
 
@@ -737,7 +743,8 @@ describe
                 const fn =
                 (): void =>
                 { };
-                throws(() => ebdd.it.per([0])(undefined as any, fn), TypeError);
+                // @ts-expect-error
+                throws(() => ebdd.it.per([0])(undefined, fn), TypeError);
             },
         );
 
@@ -749,20 +756,23 @@ describe
                 const fn =
                 (): void =>
                 { };
-                throws(() => ebdd.it.per([0])({ } as any, fn), TypeError);
+                // @ts-expect-error
+                throws(() => ebdd.it.per([0])({ }, fn), TypeError);
             },
         );
 
         it
         (
             'parameterized it with undefined callback function',
-            () => throws(() => ebdd.it.per([0])('test', undefined as any), TypeError),
+            // @ts-expect-error
+            () => throws(() => ebdd.it.per([0])('test', undefined), TypeError),
         );
 
         it
         (
             'parameterized it with invalid callback function',
-            () => throws(() => ebdd.it.per([0])('test', { } as any), TypeError),
+            // @ts-expect-error
+            () => throws(() => ebdd.it.per([0])('test', { }), TypeError),
         );
 
         it
@@ -773,26 +783,28 @@ describe
                 const fn =
                 (): void =>
                 { };
-                throws(() => ebdd.it.per([0])('test', fn as any), RangeError);
+                throws(() => ebdd.it.per([0])('test', fn), RangeError);
             },
         );
 
         it
         (
             'per with undefined argument',
-            () => throws(() => ebdd.it.per(undefined as any), TypeError),
+            // @ts-expect-error
+            () => throws(() => ebdd.it.per(undefined), TypeError),
         );
 
         it
         (
             'per with null argument',
-            () => throws(() => ebdd.it.per(null as any), TypeError),
+            // @ts-expect-error
+            () => throws(() => ebdd.it.per(null), TypeError),
         );
 
         it
         (
             'per with empty array-like',
-            () => throws(() => ebdd.it.per('' as any), TypeError),
+            () => throws(() => ebdd.it.per(''), TypeError),
         );
 
         it
@@ -800,7 +812,8 @@ describe
             'per with invalid parameter',
             () =>
             {
-                const paramInfo = new ParamInfo(42, 'foo' as any);
+                // @ts-expect-error
+                const paramInfo = new ParamInfo(42, 'foo');
                 throws(() => ebdd.it.per([paramInfo]), TypeError);
             },
         );

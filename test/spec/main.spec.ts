@@ -2,7 +2,7 @@ import { ebdd }                             from '../../src/ebdd';
 import { strictEqual, throws }              from 'assert';
 import postrequire, { PostrequireStubs }    from 'postrequire';
 
-function requireMain(stubs?: Readonly<PostrequireStubs>): unknown
+function requireMain(stubs?: Readonly<Partial<PostrequireStubs>>): unknown
 {
     const returnValue = postrequire('../../src/main', stubs) as unknown;
     return returnValue;

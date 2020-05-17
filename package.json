@@ -36,7 +36,7 @@
     "@fasttime/gulp-lint": "~0.27.1",
     "@types/mocha": "~7.0.2",
     "@types/postrequire": "file:types/postrequire",
-    "@types/sinon": "~9.0.0",
+    "@types/sinon": "~9.0.1",
     "gulp": "~4.0.2",
     "gulp-ignore": "~3.0.0",
     "gulp-rename": "~2.0.0",
@@ -45,13 +45,13 @@
     "mocha": "~7.1.2",
     "mocha-bar": "~0.1.0",
     "nyc": "~15.0.1",
-    "postrequire": "~0.2.2",
-    "rollup": "~2.7.6",
+    "postrequire": "~1.0.0",
+    "rollup": "~2.10.2",
     "rollup-plugin-node-builtins": "~2.1.2",
     "rollup-plugin-node-globals": "~1.4.0",
     "sinon": "~9.0.2",
-    "ts-node": "~8.9.1",
-    "typescript": "~3.8.3"
+    "ts-node": "~8.10.1",
+    "typescript": "~3.9.2"
   },
   "peerDependencies": {
     "mocha": ">=3.0.0"
