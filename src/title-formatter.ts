@@ -62,20 +62,15 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
         const paramIndex = rank ? rank as any - 1 : 0;
         const placeholder: string[] = [];
         let index = rankRegExp.lastIndex;
-        let propNameMatch: RegExpExecArray | null;
+        let propNameMatch: (string | undefined)[] | null;
         while (propNameMatch = propNameRegExp.exec(titlePattern.slice(index)))
         {
-            let escapedPropName;
             const propName =
-            propNameMatch[1] ||
-            propNameMatch[2] ||
-            (
-                (escapedPropName = propNameMatch[3] as string | undefined) != null ?
-                escapedPropName : propNameMatch[4]
-            )
-            .replace(/\\([^])/g, '$1');
+            propNameMatch[1] ??
+            propNameMatch[2] ??
+            (propNameMatch[3] ?? propNameMatch[4])!.replace(/\\([^])/g, '$1');
             placeholder.push(propName);
-            index += propNameMatch[0].length;
+            index += propNameMatch[0]!.length;
         }
         rankRegExp.lastIndex = index;
         makePlaceholder(placeholder, start, index, paramIndex);

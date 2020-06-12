@@ -50,9 +50,18 @@ describe
             {
                 const titleFormatter =
                 new TitleFormatter
-                ('#1.data.title #1["\\"first-name\\""] #1[\'"last-name"\'] aka #2', 2);
+                (
+                    '#1.data.title #1["\\"first-name\\""] #1[\'"last-name"\'] aka #1[""]#1[\'\']#2',
+                    2,
+                );
                 const actual =
-                titleFormatter([{ '"first-name"': 'James', '"last-name"': 'Bond' }, '007']);
+                titleFormatter
+                (
+                    [
+                        { '': '0', '"first-name"': 'James', '"last-name"': 'Bond' },
+                        '7',
+                    ],
+                );
                 strictEqual(actual, ' James Bond aka 007');
             },
         );

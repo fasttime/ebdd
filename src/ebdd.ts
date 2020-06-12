@@ -239,7 +239,7 @@ function createBDDInterface(this: Suite, context: MochaGlobals, file: string, mo
     };
     const { bdd } = mocha.constructor.interfaces;
     const maxListeners =
-    this.getMaxListeners !== undefined ?
+    (this as { getMaxListeners?: () => number; }).getMaxListeners !== undefined ?
     this.getMaxListeners() : (this as { _maxListeners?: number; })._maxListeners ?? 0;
     setMaxListeners(0);
     bdd(this);
@@ -576,7 +576,8 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
 }
 
 function createParamLists
-<ParamType>(params: ParamArrayLike<ParamType>, baseMode: Mode): readonly ParamList<[ParamType]>[]
+<ParamType>(params: ParamArrayLike<ParamType> | undefined | null, baseMode: Mode):
+readonly ParamList<[ParamType]>[]
 {
     if (params !== undefined && params !== null)
     {

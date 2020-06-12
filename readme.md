@@ -12,10 +12,19 @@ Run Mocha with additional parameters `--require ebdd --ui ebdd`.
 
 ### Node.js
 
-You don't need to require the _ebbd_ module in your code. Just set `ui` to `"ebdd"` in Mocha
-options, e.g.
+Just set `ui` to `"ebdd"` in Mocha options, e.g.
 ```js
 const mocha = new Mocha({ ui: "ebdd" });
+```
+
+If you are using TypeScript, import the _ebbd_ module in your code to use ebdd type information.
+
+```ts
+import "ebdd";
+```
+or
+```ts
+import type { } from "ebdd";
 ```
 
 ### Browser
