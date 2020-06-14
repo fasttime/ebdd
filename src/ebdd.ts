@@ -60,10 +60,10 @@ declare global
         interface PendingTestFunction extends UnparameterizedTestFunction
         { }
 
-        interface SuiteFunction extends AdaptableSuiteFunction
+        interface SuiteFunction extends UnparameterizedSuiteFunction
         { }
 
-        interface TestFunction extends AdaptableTestFunction
+        interface TestFunction extends UnparameterizedTestFunction
         { }
 
         namespace interfaces
@@ -77,20 +77,6 @@ declare global
     const when: <ParamType>(condition: boolean, param: ParamType) => ParamInfo<ParamType>;
 }
 
-export interface AdaptableSuiteFunction extends UnparameterizedSuiteFunction
-{
-    readonly adapt:
-    <AdaptParamListType extends unknown[]>
-    (adapter: SuiteAdapter<AdaptParamListType>) => UnparameterizedSuiteFunction<AdaptParamListType>;
-}
-
-export interface AdaptableTestFunction extends UnparameterizedTestFunction
-{
-    readonly adapt:
-    <AdaptParamListType extends unknown[]>
-    (adapter: TestAdapter<AdaptParamListType>) => UnparameterizedTestFunction<AdaptParamListType>;
-}
-
 enum Brand
 {
     NONE, XIT, XDESCRIBE, SKIP_OR_ONLY
@@ -102,13 +88,13 @@ export interface EBDDGlobals
     afterEach:  HookFunction;
     before:     HookFunction;
     beforeEach: HookFunction;
-    context:    AdaptableSuiteFunction;
-    describe:   AdaptableSuiteFunction;
-    it:         AdaptableTestFunction;
+    context:    UnparameterizedSuiteFunction;
+    describe:   UnparameterizedSuiteFunction;
+    it:         UnparameterizedTestFunction;
     only:       <ParamType>(param: ParamType) => ParamInfo<ParamType>;
     run?:       () => void;
     skip:       <ParamType>(param: ParamType) => ParamInfo<ParamType>;
-    specify:    AdaptableTestFunction;
+    specify:    UnparameterizedTestFunction;
     when:       <ParamType>(condition: boolean, param: ParamType) => ParamInfo<ParamType>;
     xcontext:   UnparameterizedSuiteFunction;
     xdescribe:  UnparameterizedSuiteFunction;
@@ -135,63 +121,49 @@ interface ParameterizableFunction<SubType extends ParameterizableFunction<SubTyp
     readonly when:  (condition: boolean) => SubType;
 }
 
-export interface ParameterizedSuiteFunction
-<ParamListType extends unknown[], AdaptParamListType extends unknown[]>
-extends ParameterizableFunction<ParameterizedSuiteFunction<ParamListType, AdaptParamListType>>
+export interface ParameterizedSuiteFunction<ParamListType extends unknown[]>
+extends ParameterizableFunction<ParameterizedSuiteFunction<ParamListType>>
 {
     readonly per:
     <ParamType>
     (params: ParamArrayLike<ParamType>) =>
-    ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>, AdaptParamListType>;
-    (titlePattern: string, fn: SuiteCallback<ParamListType>, ...adaptParams: AdaptParamListType):
-    SpecItemArray<Suite>;
+    ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>>;
+    (titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>;
 }
 
-export interface ParameterizedTestFunction
-<ParamListType extends unknown[], AdaptParamListType extends unknown[]>
-extends ParameterizableFunction<ParameterizedTestFunction<ParamListType, AdaptParamListType>>
+export interface ParameterizedTestFunction<ParamListType extends unknown[]>
+extends ParameterizableFunction<ParameterizedTestFunction<ParamListType>>
 {
     readonly per:
     <ParamType>
     (params: ParamArrayLike<ParamType>) =>
-    ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>, AdaptParamListType>;
-    (titlePattern: string, fn: TestCallback<ParamListType>, ...adaptParams: AdaptParamListType):
-    SpecItemArray<Test>;
+    ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>>;
+    (titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>;
 }
-
-type SuiteAdapter<AdaptParamListType extends unknown[]> =
-(this: Suite, ...adaptParams: AdaptParamListType) => void;
 
 /** Callback function used for suites. */
 type SuiteCallback<ParamListType extends unknown[] = []> =
 (this: Suite, ...params: ParamListType) => void;
-
-type TestAdapter<AdaptParamListType extends unknown[]> =
-(this: Test, ...adaptParams: AdaptParamListType) => void;
 
 /** Callback function used for tests and hooks. */
 type TestCallback<ParamListType extends unknown[] = []> =
 ((this: Context, ...params: ParamListType) => PromiseLike<any>) |
 ((this: Context, ...paramsAndDone: AppendToTuple<ParamListType, Done>) => void);
 
-export interface UnparameterizedSuiteFunction<AdaptParamListType extends unknown[] = []>
-extends ParameterizableFunction<UnparameterizedSuiteFunction<AdaptParamListType>>
+export interface UnparameterizedSuiteFunction
+extends ParameterizableFunction<UnparameterizedSuiteFunction>
 {
     readonly per:
-    <ParamType>
-    (params: ParamArrayLike<ParamType>) =>
-    ParameterizedSuiteFunction<[ParamType], AdaptParamListType>;
-    (title: string, fn: SuiteCallback, ...adaptParams: AdaptParamListType): Suite;
+    <ParamType>(params: ParamArrayLike<ParamType>) => ParameterizedSuiteFunction<[ParamType]>;
+    (title: string, fn: SuiteCallback): Suite;
 }
 
-export interface UnparameterizedTestFunction<AdaptParamListType extends unknown[] = []>
-extends ParameterizableFunction<UnparameterizedTestFunction<AdaptParamListType>>
+export interface UnparameterizedTestFunction
+extends ParameterizableFunction<UnparameterizedTestFunction>
 {
     readonly per:
-    <ParamType>
-    (params: ParamArrayLike<ParamType>) =>
-    ParameterizedTestFunction<[ParamType], AdaptParamListType>;
-    (title: string, fn: TestCallback, ...adaptParams: AdaptParamListType): Test;
+    <ParamType>(params: ParamArrayLike<ParamType>) => ParameterizedTestFunction<[ParamType]>;
+    (title: string, fn: TestCallback): Test;
 }
 
 export class ParamInfo<ParamType>
@@ -252,63 +224,18 @@ function createBDDInterface(this: Suite, context: MochaGlobals, file: string, mo
 
 function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
 {
-    function createAdaptableSuiteFunction(): AdaptableSuiteFunction
-    {
-        function adapt
-        <AdaptParamListType extends unknown[]>
-        (adapter: SuiteAdapter<AdaptParamListType>):
-        UnparameterizedSuiteFunction<AdaptParamListType>
-        {
-            validateAdapter(adapter);
-            const describe = createUnparameterizedSuiteFunction(Mode.NORMAL, Brand.NONE, adapter);
-            return describe;
-        }
-
-        const describe = createUnparameterizedSuiteFunction() as AdaptableSuiteFunction;
-        (describe as { adapt: typeof adapt; }).adapt = adapt;
-        return describe;
-    }
-
-    function createAdaptableTestFunction(): AdaptableTestFunction
-    {
-        function adapt
-        <AdaptParamListType extends unknown[]>
-        (adapter: TestAdapter<AdaptParamListType>):
-        UnparameterizedTestFunction<AdaptParamListType>
-        {
-            validateAdapter(adapter);
-            const it = createUnparameterizedTestFunction(Mode.NORMAL, Brand.NONE, adapter);
-            return it;
-        }
-
-        const it = createUnparameterizedTestFunction() as AdaptableTestFunction;
-        (it as { adapt: typeof adapt; }).adapt = adapt;
-        return it;
-    }
-
     function createParameterizedSuiteFunction
-    <ParamListType extends unknown[], AdaptParamListType extends unknown[]>
-    (
-        baseParamLists: readonly ParamList<ParamListType>[],
-        brand:          Brand,
-        adapter:        SuiteAdapter<AdaptParamListType> | undefined,
-    ):
-    ParameterizedSuiteFunction<ParamListType, AdaptParamListType>
+    <ParamListType extends unknown[]>
+    (baseParamLists: readonly ParamList<ParamListType>[], brand: Brand):
+    ParameterizedSuiteFunction<ParamListType>
     {
-        function skip(brand: Brand): ParameterizedSuiteFunction<ParamListType, AdaptParamListType>
+        function skip(brand: Brand): ParameterizedSuiteFunction<ParamListType>
         {
-            const describe =
-            createParameterizedSuiteFunction(skipAll(baseParamLists), brand, adapter);
+            const describe = createParameterizedSuiteFunction(skipAll(baseParamLists), brand);
             return describe;
         }
 
-        function stub
-        (
-            titlePattern:   string,
-            fn:             SuiteCallback<ParamListType>,
-            ...adaptParams: AdaptParamListType
-        ):
-        SpecItemArray<Suite>
+        function stub(titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>
         {
             validateTitlePattern(titlePattern);
             const paramCount = baseParamLists[0].length;
@@ -322,8 +249,6 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
                 const fnWrapper = bindArguments(fn, paramList);
                 const suite = createSuite(title, fnWrapper);
                 suites.parent = suite.parent;
-                if (adapter)
-                    adapter.apply(suite, adaptParams);
                 suites.push(suite);
             }
             return suites;
@@ -332,48 +257,42 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
         stub.per =
         <ParamType>
         (params: ParamArrayLike<ParamType>):
-        ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>, AdaptParamListType> =>
+        ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>> =>
         {
             const paramLists = multiplyParams(params, baseParamLists);
-            const describe = createParameterizedSuiteFunction(paramLists, brand, adapter);
+            const describe = createParameterizedSuiteFunction(paramLists, brand);
             return describe;
         };
 
         stub.when =
-        (condition: boolean): ParameterizedSuiteFunction<ParamListType, AdaptParamListType> =>
+        (condition: boolean): ParameterizedSuiteFunction<ParamListType> =>
         condition ? describe : skip(brand);
 
         const describe =
         makeParameterizableFunction
         (
             stub,
-            (): ParameterizedSuiteFunction<ParamListType, AdaptParamListType> =>
+            (): ParameterizedSuiteFunction<ParamListType> =>
             skip(Brand.SKIP_OR_ONLY),
-            (): ParameterizedSuiteFunction<ParamListType, AdaptParamListType> =>
-            createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY, adapter),
+            (): ParameterizedSuiteFunction<ParamListType> =>
+            createParameterizedSuiteFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY),
             brand,
         );
         return describe;
     }
 
     function createParameterizedTestFunction
-    <ParamListType extends unknown[], AdaptParamListType extends unknown[]>
-    (
-        baseParamLists: readonly ParamList<ParamListType>[],
-        brand:          Brand,
-        adapter:        TestAdapter<AdaptParamListType> | undefined,
-    ):
-    ParameterizedTestFunction<ParamListType, AdaptParamListType>
+    <ParamListType extends unknown[]>
+    (baseParamLists: readonly ParamList<ParamListType>[], brand: Brand):
+    ParameterizedTestFunction<ParamListType>
     {
-        function skip(brand: Brand): ParameterizedTestFunction<ParamListType, AdaptParamListType>
+        function skip(brand: Brand): ParameterizedTestFunction<ParamListType>
         {
-            const it = createParameterizedTestFunction(skipAll(baseParamLists), brand, adapter);
+            const it = createParameterizedTestFunction(skipAll(baseParamLists), brand);
             return it;
         }
 
-        function stub
-        (titlePattern: string, fn: TestCallback<ParamListType>, ...adaptParams: AdaptParamListType):
-        SpecItemArray<Test>
+        function stub(titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>
         {
             validateTitlePattern(titlePattern);
             const paramCount = baseParamLists[0].length;
@@ -399,8 +318,6 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
                 }
                 const test = createTest(title, fnWrapper);
                 tests.parent = test.parent;
-                if (adapter)
-                    adapter.apply(test, adaptParams);
                 tests.push(test);
             }
             return tests;
@@ -409,121 +326,101 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
         stub.per =
         <ParamType>
         (params: ParamArrayLike<ParamType>):
-        ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>, AdaptParamListType> =>
+        ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>> =>
         {
             const paramLists = multiplyParams(params, baseParamLists);
-            const it = createParameterizedTestFunction(paramLists, brand, adapter);
+            const it = createParameterizedTestFunction(paramLists, brand);
             return it;
         };
 
         stub.when =
-        (condition: boolean): ParameterizedTestFunction<ParamListType, AdaptParamListType> =>
+        (condition: boolean): ParameterizedTestFunction<ParamListType> =>
         condition ? it : skip(brand);
 
         const it =
         makeParameterizableFunction
         (
             stub,
-            (): ParameterizedTestFunction<ParamListType, AdaptParamListType> =>
+            (): ParameterizedTestFunction<ParamListType> =>
             skip(Brand.SKIP_OR_ONLY),
-            (): ParameterizedTestFunction<ParamListType, AdaptParamListType> =>
-            createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY, adapter),
+            (): ParameterizedTestFunction<ParamListType> =>
+            createParameterizedTestFunction(onlyAll(baseParamLists), Brand.SKIP_OR_ONLY),
             brand,
         );
         return it;
     }
 
     function createUnparameterizedSuiteFunction
-    <AdaptParamListType extends unknown[]>
-    (
-        baseMode:   Mode = Mode.NORMAL,
-        brand:      Brand = Brand.NONE,
-        adapter?:   SuiteAdapter<AdaptParamListType>,
-    ):
-    UnparameterizedSuiteFunction<AdaptParamListType>
+    (baseMode: Mode = Mode.NORMAL, brand: Brand = Brand.NONE): UnparameterizedSuiteFunction
     {
-        function stub(title: string, fn: SuiteCallback, ...adaptParams: AdaptParamListType): Suite
+        function stub(title: string, fn: SuiteCallback): Suite
         {
             validateTitle(title);
             validateSuiteCallback(fn, 0);
             const createSuite = getCreateSuite(baseMode);
             const suite = createSuite(title, fn);
-            if (adapter)
-                adapter.apply(suite, adaptParams);
             return suite;
         }
 
         stub.per =
         <ParamType>
         (params: ParamArrayLike<ParamType>):
-        ParameterizedSuiteFunction<[ParamType], AdaptParamListType> =>
+        ParameterizedSuiteFunction<[ParamType]> =>
         {
             const paramLists = createParamLists(params, baseMode);
-            const describe = createParameterizedSuiteFunction(paramLists, brand, adapter);
+            const describe = createParameterizedSuiteFunction(paramLists, brand);
             return describe;
         };
 
         stub.when =
-        (condition: boolean): UnparameterizedSuiteFunction<AdaptParamListType> =>
-        condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand, adapter);
+        (condition: boolean): UnparameterizedSuiteFunction =>
+        condition ? describe : createUnparameterizedSuiteFunction(Mode.SKIP, brand);
 
         const describe =
         makeParameterizableFunction
         (
             stub,
-            (): UnparameterizedSuiteFunction<AdaptParamListType> =>
-            createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY, adapter),
-            (): UnparameterizedSuiteFunction<AdaptParamListType> =>
-            createUnparameterizedSuiteFunction
-            (maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY, adapter),
+            (): UnparameterizedSuiteFunction =>
+            createUnparameterizedSuiteFunction(Mode.SKIP, Brand.SKIP_OR_ONLY),
+            (): UnparameterizedSuiteFunction =>
+            createUnparameterizedSuiteFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY),
             brand,
         );
         return describe;
     }
 
     function createUnparameterizedTestFunction
-    <AdaptParamListType extends unknown[]>
-    (
-        baseMode:   Mode = Mode.NORMAL,
-        brand:      Brand = Brand.NONE,
-        adapter?:   TestAdapter<AdaptParamListType>,
-    ):
-    UnparameterizedTestFunction<AdaptParamListType>
+    (baseMode: Mode = Mode.NORMAL, brand: Brand = Brand.NONE): UnparameterizedTestFunction
     {
-        function stub(title: string, fn: TestCallback, ...adaptParams: AdaptParamListType): Test
+        function stub(title: string, fn: TestCallback): Test
         {
             validateTitle(title);
             validateTestCallback(fn, 0);
             const createTest = getCreateTest(baseMode);
             const test = createTest(title, fn);
-            if (adapter)
-                adapter.apply(test, adaptParams);
             return test;
         }
 
         stub.per =
-        <ParamType>
-        (params: ParamArrayLike<ParamType>):
-        ParameterizedTestFunction<[ParamType], AdaptParamListType> =>
+        <ParamType>(params: ParamArrayLike<ParamType>): ParameterizedTestFunction<[ParamType]> =>
         {
             const paramLists = createParamLists(params, baseMode);
-            const it = createParameterizedTestFunction(paramLists, brand, adapter);
+            const it = createParameterizedTestFunction(paramLists, brand);
             return it;
         };
 
         stub.when =
-        (condition: boolean): UnparameterizedTestFunction<AdaptParamListType> =>
-        condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand, adapter);
+        (condition: boolean): UnparameterizedTestFunction =>
+        condition ? it : createUnparameterizedTestFunction(Mode.SKIP, brand);
 
         const it =
         makeParameterizableFunction
         (
             stub,
-            (): UnparameterizedTestFunction<AdaptParamListType> =>
-            createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY, adapter),
-            (): UnparameterizedTestFunction<AdaptParamListType> =>
-            createUnparameterizedTestFunction
-            (maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY, adapter),
+            (): UnparameterizedTestFunction =>
+            createUnparameterizedTestFunction(Mode.SKIP, Brand.SKIP_OR_ONLY),
+            (): UnparameterizedTestFunction =>
+            createUnparameterizedTestFunction(maxMode(Mode.ONLY, baseMode), Brand.SKIP_OR_ONLY),
             brand,
         );
         return it;
@@ -559,11 +456,11 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
     const { describe: bddDescribe, it: bddIt } = context;
     const bddXit = (title: string): Test => bddIt(title);
     context.describe = context.context =
-    createAdaptableSuiteFunction() as SuiteFunction;
+    createUnparameterizedSuiteFunction() as SuiteFunction;
     context.xdescribe = context.xcontext =
     createUnparameterizedSuiteFunction(Mode.SKIP, Brand.XDESCRIBE);
     context.it = context.specify =
-    createAdaptableTestFunction() as TestFunction;
+    createUnparameterizedTestFunction() as TestFunction;
     context.xit = context.xspecify =
     createUnparameterizedTestFunction(Mode.SKIP, Brand.XIT) as PendingTestFunction;
     context.only =
@@ -740,15 +637,6 @@ function skipAll
         },
     );
     return paramLists;
-}
-
-function validateAdapter(adapter: Function): void
-{
-    if (typeof adapter !== 'function')
-    {
-        const message = 'Argument `adapter` is not a function.';
-        throw TypeError(message);
-    }
 }
 
 function validateSuiteCallback(fn: Function, expectedLength: number): void

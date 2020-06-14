@@ -61,7 +61,7 @@ describe
 
         function assertBDDIts<ParamListType extends unknown[]>
         (
-            ebddItAny: ParameterizedTestFunction<ParamListType, []>,
+            ebddItAny: ParameterizedTestFunction<ParamListType>,
             bddCallDataList: readonly BDDCallData[],
         ):
         void
@@ -105,7 +105,7 @@ describe
 
         function assertBDDItsWithParams<ParamListType extends unknown[]>
         (
-            ebddItAny:          ParameterizedTestFunction<ParamListType, []>,
+            ebddItAny:          ParameterizedTestFunction<ParamListType>,
             bddCallDataList:    readonly BDDCallData[],
             titlePattern:       string,
             testCallback:       (...args: any) => void,
@@ -561,72 +561,6 @@ describe
                     5000,
                 );
             },
-        );
-
-        it
-        (
-            'it.adapt(...)',
-            () =>
-            {
-                const testCallback =
-                (): void =>
-                { };
-                const adaptParams = [42, 'foo', { }];
-                const adapter = spy();
-                const adaptedIt = ebdd.it.adapt(adapter);
-                adaptedIt('some title', testCallback, ...adaptParams);
-
-                ok(!('adapt' in adaptedIt));
-                ok('only' in adaptedIt);
-                ok('per' in adaptedIt);
-                ok('skip' in adaptedIt);
-                ok('when' in adaptedIt);
-                ok(adapter.calledOnce);
-                const { lastCall } = adapter;
-                deepStrictEqual(lastCall.thisValue, bddIt.it.lastCall.returnValue);
-                deepStrictEqual(lastCall.args, adaptParams);
-            },
-        );
-
-        it
-        (
-            'it.adapt(...).per([...])',
-            () =>
-            {
-                const testCallback =
-                (letter: string): void =>
-                { };
-                const adaptParams = [42, 'foo', { }];
-                const adapter = spy();
-                const adaptedIt = ebdd.it.adapt(adapter);
-                adaptedIt.per(getTestParams())('some title', testCallback, ...adaptParams);
-                const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
-                const bddItAnyCalls = getCallsInExpectedOrder(bddCallDataList);
-
-                bddItAnyCalls.forEach
-                (
-                    (bddItAnyCall: SinonSpyCall, index: number): void =>
-                    {
-                        const adapterCall = adapter.getCall(index);
-                        deepStrictEqual(adapterCall.thisValue, bddItAnyCall.returnValue);
-                    },
-                );
-                ok(adapter.alwaysCalledWithExactly(...adaptParams));
-            },
-        );
-
-        it
-        (
-            'it.adapt with undefined adapter function',
-            // @ts-expect-error
-            () => throws(() => ebdd.it.adapt(undefined), TypeError),
-        );
-
-        it
-        (
-            'it.adapt with invalid adapter function',
-            // @ts-expect-error
-            () => throws(() => ebdd.it.adapt({ }), TypeError),
         );
 
         it

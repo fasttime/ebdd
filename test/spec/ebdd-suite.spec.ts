@@ -32,7 +32,7 @@ describe
 
         function assertBDDDescribes<ParamListType extends unknown[]>
         (
-            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType, []>,
+            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType>,
             bddDescribeAnyList: readonly SinonStub[],
         ):
         void
@@ -53,7 +53,7 @@ describe
 
         function assertBDDDescribesWithParams<ParamListType extends unknown[]>
         (
-            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType, []>,
+            ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType>,
             bddDescribeAnyList: readonly SinonStub[],
             titlePattern:       string,
             suiteCallback:      (...args: any) => void,
@@ -542,79 +542,6 @@ describe
                     expectedParamsList,
                 );
             },
-        );
-
-        it
-        (
-            'describe.adapt(...)',
-            () =>
-            {
-                const suiteCallback =
-                (): void =>
-                { };
-                const adaptParams = [42, 'foo', { }];
-                const adapter = spy();
-                const adaptedDescribe = ebdd.describe.adapt(adapter);
-                adaptedDescribe('some title', suiteCallback, ...adaptParams);
-
-                ok(!('adapt' in adaptedDescribe));
-                ok('only' in adaptedDescribe);
-                ok('per' in adaptedDescribe);
-                ok('skip' in adaptedDescribe);
-                ok('when' in adaptedDescribe);
-                ok(adapter.calledOnce);
-                const { lastCall } = adapter;
-                deepStrictEqual(lastCall.thisValue, bddDescribe.lastCall.returnValue);
-                deepStrictEqual(lastCall.args, adaptParams);
-            },
-        );
-
-        it
-        (
-            'describe.adapt(...).per([...])',
-            () =>
-            {
-                const suiteCallback =
-                (letter: string): void =>
-                { };
-                const adaptParams = [42, 'foo', { }];
-                const adapter = spy();
-                const adaptedDescribe = ebdd.describe.adapt(adapter);
-                adaptedDescribe.per(getTestParams())('some title', suiteCallback, ...adaptParams);
-                const bddDescribeAnyList =
-                [
-                    bddDescribe,
-                    bddDescribeOnly,
-                    bddDescribeSkip,
-                    bddDescribe,
-                    bddDescribeSkip,
-                ];
-                const bddDescribeAnyCalls = getCallsInExpectedOrder(bddDescribeAnyList);
-
-                bddDescribeAnyCalls.forEach
-                (
-                    (bddDescribeAnyCall: SinonSpyCall, index: number): void =>
-                    {
-                        const adapterCall = adapter.getCall(index);
-                        deepStrictEqual(adapterCall.thisValue, bddDescribeAnyCall.returnValue);
-                    },
-                );
-                ok(adapter.alwaysCalledWithExactly(...adaptParams));
-            },
-        );
-
-        it
-        (
-            'describe.adapt with undefined adapter function',
-            // @ts-expect-error
-            () => throws(() => ebdd.describe.adapt(undefined), TypeError),
-        );
-
-        it
-        (
-            'describe.adapt with invalid adapter function',
-            // @ts-expect-error
-            () => throws(() => ebdd.describe.adapt({ }), TypeError),
         );
 
         it
