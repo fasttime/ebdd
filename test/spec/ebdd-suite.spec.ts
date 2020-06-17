@@ -1,7 +1,7 @@
 import
 {
-    ParamArrayLike,
     ParamInfo,
+    ParamOrParamInfo,
     ParameterizedSuiteFunction,
     UnparameterizedSuiteFunction,
 }
@@ -157,7 +157,7 @@ describe
             return bddDescribeAnyCalls;
         }
 
-        function getTestParams(): ParamArrayLike<string>
+        function getTestParams(): ParamOrParamInfo<string>[]
         {
             const params =
             [

@@ -107,7 +107,7 @@ enum Mode
     NORMAL, ONLY, SKIP
 }
 
-export type ParamArrayLike<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;
+export type ParamCollection<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;
 
 type ParamList<ParamListType extends readonly unknown[]> = ParamListType & { readonly mode: Mode; };
 
@@ -120,10 +120,10 @@ interface ParameterizableFunction<SubType extends ParameterizableFunction<SubTyp
     readonly only: SubType;
     readonly skip: SubType;
     readonly when: (condition: boolean) => SubType;
-    per<ParamType>(params: ParamArrayLike<ParamType>): unknown;
+    per<ParamType>(params: ParamCollection<ParamType>): unknown;
     per
     <InParamType, OutParamType>
-    (params: ParamArrayLike<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
+    (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     unknown;
 }
 
@@ -132,11 +132,11 @@ extends ParameterizableFunction<ParameterizedSuiteFunction<ParamListType>>
 {
     per
     <ParamType>
-    (params: ParamArrayLike<ParamType>):
+    (params: ParamCollection<ParamType>):
     ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>>;
     per
     <InParamType, OutParamType>
-    (params: ParamArrayLike<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
+    (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedSuiteFunction<AppendToTuple<ParamListType, OutParamType>>;
     (titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>;
 }
@@ -146,11 +146,11 @@ extends ParameterizableFunction<ParameterizedTestFunction<ParamListType>>
 {
     per
     <ParamType>
-    (params: ParamArrayLike<ParamType>):
+    (params: ParamCollection<ParamType>):
     ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>>;
     per
     <InParamType, OutParamType>
-    (params: ParamArrayLike<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
+    (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedTestFunction<AppendToTuple<ParamListType, OutParamType>>;
     (titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>;
 }
@@ -167,10 +167,10 @@ type TestCallback<ParamListType extends unknown[] = []> =
 export interface UnparameterizedSuiteFunction
 extends ParameterizableFunction<UnparameterizedSuiteFunction>
 {
-    per<ParamType>(params: ParamArrayLike<ParamType>): ParameterizedSuiteFunction<[ParamType]>;
+    per<ParamType>(params: ParamCollection<ParamType>): ParameterizedSuiteFunction<[ParamType]>;
     per
     <InParamType, OutParamType>
-    (params: ParamArrayLike<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
+    (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedSuiteFunction<[OutParamType]>;
     (title: string, fn: SuiteCallback): Suite;
 }
@@ -178,10 +178,10 @@ extends ParameterizableFunction<UnparameterizedSuiteFunction>
 export interface UnparameterizedTestFunction
 extends ParameterizableFunction<UnparameterizedTestFunction>
 {
-    per<ParamType>(params: ParamArrayLike<ParamType>): ParameterizedTestFunction<[ParamType]>;
+    per<ParamType>(params: ParamCollection<ParamType>): ParameterizedTestFunction<[ParamType]>;
     per
     <InParamType, OutParamType>
-    (params: ParamArrayLike<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
+    (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedTestFunction<[OutParamType]>;
     (title: string, fn: TestCallback): Test;
 }
@@ -283,7 +283,7 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
         stub.per =
         <InParamType, OutParamType>
         (
-            params:         ParamArrayLike<InParamType>,
+            params:         ParamCollection<InParamType>,
             paramMapper?:   ParamMapper<InParamType, OutParamType>,
         ):
         ParameterizedSuiteFunction<AppendToTuple<ParamListType, OutParamType>> =>
@@ -356,7 +356,7 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
         stub.per =
         <InParamType, OutParamType>
         (
-            params:         ParamArrayLike<InParamType>,
+            params:         ParamCollection<InParamType>,
             paramMapper?:   ParamMapper<InParamType, OutParamType>,
         ):
         ParameterizedTestFunction<AppendToTuple<ParamListType, OutParamType>> =>
@@ -399,7 +399,7 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
         stub.per =
         <InParamType, OutParamType>
         (
-            params:         ParamArrayLike<InParamType>,
+            params:         ParamCollection<InParamType>,
             paramMapper?:   ParamMapper<InParamType, OutParamType>,
         ):
         ParameterizedSuiteFunction<[OutParamType]> =>
@@ -442,7 +442,7 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
         stub.per =
         <InParamType, OutParamType>
         (
-            params:         ParamArrayLike<InParamType>,
+            params:         ParamCollection<InParamType>,
             paramMapper?:   ParamMapper<InParamType, OutParamType>,
         ):
         ParameterizedTestFunction<[OutParamType]> =>
@@ -519,7 +519,7 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
 function createParamLists
 <InParamType, OutParamType>
 (
-    params:         ParamArrayLike<InParamType> | undefined | null,
+    params:         ParamCollection<InParamType> | undefined | null,
     paramMapper:    ParamMapper<InParamType, OutParamType> | undefined,
     baseMode:       Mode,
 ):
@@ -530,7 +530,7 @@ readonly ParamList<[OutParamType]>[]
         const paramLists =
         Array.prototype.map.call
         <
-        ParamArrayLike<InParamType>,
+        ParamCollection<InParamType>,
         [(paramOrParamInfo: ParamOrParamInfo<InParamType>) => ParamList<[OutParamType]>],
         ParamList<[OutParamType]>[]
         >
@@ -638,7 +638,7 @@ const maxMode: (...modes: Mode[]) => Mode = Math.max;
 function multiplyParams
 <InParamType, OutParamType, ParamListType extends unknown[]>
 (
-    params:         ParamArrayLike<InParamType>,
+    params:         ParamCollection<InParamType>,
     paramMapper:    ParamMapper<InParamType, OutParamType> | undefined,
     baseParamLists: readonly ParamList<ParamListType>[],
 ):

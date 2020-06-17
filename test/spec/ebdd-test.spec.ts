@@ -1,7 +1,7 @@
 import
 {
-    ParamArrayLike,
     ParamInfo,
+    ParamOrParamInfo,
     ParameterizedTestFunction,
     UnparameterizedTestFunction,
 }
@@ -219,7 +219,7 @@ describe
             return bddItAnyCalls;
         }
 
-        function getTestParams(): ParamArrayLike<string>
+        function getTestParams(): ParamOrParamInfo<string>[]
         {
             const params =
             [
