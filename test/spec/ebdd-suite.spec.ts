@@ -34,12 +34,15 @@ describe
         (
             ebddDescribeAny:    ParameterizedSuiteFunction<ParamListType>,
             bddDescribeAnyList: readonly SinonStub[],
+            expectedParamsList: readonly (readonly unknown[])[] =
+            [['A'], ['B'], ['C'], ['D'], ['E']],
         ):
         void
         {
             const suiteCallback =
             (letter: string): void =>
             { };
+
             assertBDDDescribesWithParams
             (
                 ebddDescribeAny,
@@ -47,7 +50,7 @@ describe
                 '"#" is good',
                 suiteCallback,
                 ([letter]: readonly unknown[]) => `"${letter}" is good`,
-                [['A'], ['B'], ['C'], ['D'], ['E']],
+                expectedParamsList,
             );
         }
 
@@ -424,6 +427,46 @@ describe
 
         it
         (
+            'describe.per([...])',
+            () =>
+            {
+                const ebddDescribeAny = ebdd.describe.per(getTestParams());
+                const bddDescribeAnyList =
+                [
+                    bddDescribe,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                    bddDescribe,
+                    bddDescribeSkip,
+                ];
+
+                assertBDDDescribes(ebddDescribeAny, bddDescribeAnyList);
+            },
+        );
+
+        it
+        (
+            'describe.per([...], ...)',
+            () =>
+            {
+                const ebddDescribeAny =
+                ebdd.describe.per(getTestParams(), (letter: string) => letter.toLowerCase());
+                const bddDescribeAnyList =
+                [
+                    bddDescribe,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                    bddDescribe,
+                    bddDescribeSkip,
+                ];
+
+                assertBDDDescribes
+                (ebddDescribeAny, bddDescribeAnyList, [['a'], ['b'], ['c'], ['d'], ['e']]);
+            },
+        );
+
+        it
+        (
             'describe.per([...]).only',
             () =>
             {
@@ -712,21 +755,21 @@ describe
 
         it
         (
-            'per with undefined argument',
+            'per with undefined params argument',
             // @ts-expect-error
             () => throws(() => ebdd.describe.per(undefined), TypeError),
         );
 
         it
         (
-            'per with null argument',
+            'per with null params argument',
             // @ts-expect-error
             () => throws(() => ebdd.describe.per(null), TypeError),
         );
 
         it
         (
-            'per with empty array-like',
+            'per with empty array-like params argument',
             () => throws(() => ebdd.describe.per(''), TypeError),
         );
 
@@ -738,6 +781,16 @@ describe
                 // @ts-expect-error
                 const paramInfo = new ParamInfo(42, 'foo');
                 throws(() => ebdd.describe.per([paramInfo]), TypeError);
+            },
+        );
+
+        it
+        (
+            'per with invalid paramMapper argument',
+            () =>
+            {
+                // @ts-expect-error
+                throws(() => ebdd.describe.per([1], 'WRONG'), TypeError);
             },
         );
     },

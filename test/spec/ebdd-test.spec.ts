@@ -63,6 +63,8 @@ describe
         (
             ebddItAny: ParameterizedTestFunction<ParamListType>,
             bddCallDataList: readonly BDDCallData[],
+            expectedParamsList: readonly (readonly unknown[])[] =
+            [['A'], ['B'], ['C'], ['D'], ['E']],
         ):
         void
         {
@@ -70,6 +72,7 @@ describe
                 const testCallback =
                 (letter: string): void =>
                 { };
+
                 assertBDDItsWithParams
                 (
                     ebddItAny,
@@ -77,7 +80,7 @@ describe
                     '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
-                    [['A'], ['B'], ['C'], ['D'], ['E']],
+                    expectedParamsList,
                     [],
                     3000,
                 );
@@ -86,9 +89,11 @@ describe
                 const testCallback =
                 (letter: string, done: Done): void =>
                 { };
+
                 const done: Done =
                 () =>
                 { };
+
                 assertBDDItsWithParams
                 (
                     ebddItAny,
@@ -96,7 +101,7 @@ describe
                     '"#" is good',
                     testCallback,
                     ([letter]: readonly unknown[]) => `"${letter}" is good`,
-                    [['A'], ['B'], ['C'], ['D'], ['E']],
+                    expectedParamsList,
                     [done],
                     8000,
                 );
@@ -463,6 +468,31 @@ describe
 
         it
         (
+            'it.per([...])',
+            () =>
+            {
+                const ebddItAny = ebdd.it.per(getTestParams());
+                const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
+
+                assertBDDIts(ebddItAny, bddCallDataList, [['A'], ['B'], ['C'], ['D'], ['E']]);
+            },
+        );
+
+        it
+        (
+            'it.per([...], ...)',
+            () =>
+            {
+                const ebddItAny =
+                ebdd.it.per(getTestParams(), (letter: string) => `${letter}${letter}`);
+                const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
+
+                assertBDDIts(ebddItAny, bddCallDataList, [['AA'], ['BB'], ['CC'], ['DD'], ['EE']]);
+            },
+        );
+
+        it
+        (
             'it.per([...]).only',
             () =>
             {
@@ -723,21 +753,21 @@ describe
 
         it
         (
-            'per with undefined argument',
+            'per with undefined params argument',
             // @ts-expect-error
             () => throws(() => ebdd.it.per(undefined), TypeError),
         );
 
         it
         (
-            'per with null argument',
+            'per with null params argument',
             // @ts-expect-error
             () => throws(() => ebdd.it.per(null), TypeError),
         );
 
         it
         (
-            'per with empty array-like',
+            'per with empty array-like params argument',
             () => throws(() => ebdd.it.per(''), TypeError),
         );
 
@@ -749,6 +779,16 @@ describe
                 // @ts-expect-error
                 const paramInfo = new ParamInfo(42, 'foo');
                 throws(() => ebdd.it.per([paramInfo]), TypeError);
+            },
+        );
+
+        it
+        (
+            'per with invalid paramMapper argument',
+            () =>
+            {
+                // @ts-expect-error
+                throws(() => ebdd.it.per([1], 'WRONG'), TypeError);
             },
         );
     },
