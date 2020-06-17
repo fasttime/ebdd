@@ -696,8 +696,13 @@ describe
                 const fn =
                 (arg0: never): void =>
                 { };
-                // @ts-expect-error
-                throws(() => ebdd.describe('suite', fn), RangeError);
+                throws
+                (
+                    // @ts-expect-error
+                    () => ebdd.describe('suite', fn),
+                    (error: unknown) =>
+                    error instanceof RangeError && /\b0 parameters\b/.test(error.message),
+                );
             },
         );
 
@@ -743,13 +748,37 @@ describe
 
         it
         (
-            'parameterized describe with callback function accepting wrong number of arguments',
+            'simply parameterized describe with callback function accepting wrong number of ' +
+            'arguments',
             () =>
             {
                 const fn =
                 (): void =>
                 { };
-                throws(() => ebdd.describe.per([0])('suite', fn), RangeError);
+                throws
+                (
+                    () => ebdd.describe.per([0])('suite', fn),
+                    (error: unknown) =>
+                    error instanceof RangeError && /\b1 parameter\b/.test(error.message),
+                );
+            },
+        );
+
+        it
+        (
+            'multiparameterized describe with callback function accepting wrong number of ' +
+            'arguments',
+            () =>
+            {
+                const fn =
+                (): void =>
+                { };
+                throws
+                (
+                    () => ebdd.describe.per([0]).per([1])('suite', fn),
+                    (error: unknown) =>
+                    error instanceof RangeError && /\b2 parameters\b/.test(error.message),
+                );
             },
         );
 

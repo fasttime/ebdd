@@ -694,8 +694,13 @@ describe
                 const fn =
                 (arg0: never, arg1: never): void =>
                 { };
-                // @ts-expect-error
-                throws(() => ebdd.it('test', fn), RangeError);
+                throws
+                (
+                    // @ts-expect-error
+                    () => ebdd.it('test', fn),
+                    (error: unknown) =>
+                    error instanceof RangeError && /\b0 parameters\b/.test(error.message),
+                );
             },
         );
 
@@ -741,13 +746,35 @@ describe
 
         it
         (
-            'parameterized it with callback function accepting wrong number of arguments',
+            'simply parameterized it with callback function accepting wrong number of arguments',
             () =>
             {
                 const fn =
                 (): void =>
                 { };
-                throws(() => ebdd.it.per([0])('test', fn), RangeError);
+                throws
+                (
+                    () => ebdd.it.per([0])('test', fn),
+                    (error: unknown) =>
+                    error instanceof RangeError && /\b1 parameter\b/.test(error.message),
+                );
+            },
+        );
+
+        it
+        (
+            'multiparameterized it with callback function accepting wrong number of arguments',
+            () =>
+            {
+                const fn =
+                (): void =>
+                { };
+                throws
+                (
+                    () => ebdd.it.per([0]).per([1])('test', fn),
+                    (error: unknown) =>
+                    error instanceof RangeError && /\b2 parameters\b/.test(error.message),
+                );
             },
         );
 

@@ -222,6 +222,12 @@ export class SpecItemArray<SpecItemType extends Suite | Test> extends Extensible
     }
 }
 
+function countParameters(paramCount: number): string
+{
+    const paramStr = `${paramCount} ${paramCount === 1 ? 'parameter' : 'parameters'}`;
+    return paramStr;
+}
+
 function createBDDInterface(this: Suite, context: MochaGlobals, file: string, mocha: Mocha): void
 {
     const setMaxListeners =
@@ -713,8 +719,8 @@ function validateSuiteCallback(fn: Function, expectedLength: number): void
     if (length !== expectedLength)
     {
         const message =
-        `The suite callback function should accept ${expectedLength} parameters, but it accepts ` +
-        `${length}.`;
+        `The suite callback function should accept ${countParameters(expectedLength)}, but it ` +
+        `accepts ${length}.`;
         throw RangeError(message);
     }
 }
@@ -730,7 +736,7 @@ function validateTestCallback(fn: Function, expectedMinLength: number): void
     if (length !== expectedMinLength && length !== expectedMinLength + 1)
     {
         const message =
-        `The test callback function should accept ${expectedMinLength} parameters, or ` +
+        `The test callback function should accept ${countParameters(expectedMinLength)}, or ` +
         `${expectedMinLength + 1} if it uses a done callback, but it accepts ${length}.`;
         throw RangeError(message);
     }
