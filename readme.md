@@ -1,3 +1,5 @@
+# EBDD · [![npm version][npm badge]][npm url]
+
 ## Installation
 
 ```console
@@ -42,3 +44,6 @@ mocha.setup({ ui: "ebdd" });
 mocha.run();
 </script>
 ```
+
+[npm badge]: https://badge.fury.io/js/ebdd.svg
+[npm url]: https://www.npmjs.com/package/ebdd

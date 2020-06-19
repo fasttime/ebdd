@@ -46,7 +46,7 @@
     "mocha-bar": "~0.1.0",
     "nyc": "~15.1.0",
     "postrequire": "~1.0.0",
-    "rollup": "~2.15.0",
+    "rollup": "~2.17.1",
     "rollup-plugin-node-builtins": "~2.1.2",
     "rollup-plugin-node-globals": "~1.4.0",
     "sinon": "~9.0.2",
