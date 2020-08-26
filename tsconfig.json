@@ -2,9 +2,9 @@
   "compilerOptions": {
     "declaration": true,
     "esModuleInterop": true,
-    "module": "es2015",
+    "module": "ES2020",
     "strict": true,
-    "target": "es5"
+    "target": "ES5"
   },
   "exclude": [
     "test/node-legacy"

@@ -67,8 +67,8 @@ task
             '--reporter=html',
             '--reporter=text-summary',
             mochaPath,
-            '--require=ts-node/register',
             '--check-leaks',
+            '--require=ts-node/register',
             'test/spec/**/*.spec.ts',
         ];
         const forkOpts = { env: { ...process.env, TS_NODE_PROJECT: 'test/tsconfig.json' } };
@@ -90,11 +90,7 @@ task
         const { dts, js } =
         src(['{src,test}/**/*.ts', '!test/node-legacy/**']).pipe(createProject('tsconfig.json')());
         const condition =
-        [
-            'src/**/append-to-tuple.d.ts',
-            'src/**/ebdd.d.ts',
-            'src/**/extensible-array.d.ts',
-        ];
+        ['src/append-to-tuple.d.ts', 'src/ebdd.d.ts', 'src/extensible-array.d.ts'];
         const stream =
         mergeStream
         (

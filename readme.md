@@ -6,11 +6,16 @@
 npm install --save-dev ebdd
 ```
 
+To install TypeScript types, run
+```console
+npm install --save-dev @types/ebdd@npm:ebdd
+```
+
 ## Usage
 
 ### Command line
 
-Run Mocha with additional parameters `--require ebdd --ui ebdd`.
+Run Mocha with additional parameter `--ui=ebdd`.
 
 ### Node.js
 

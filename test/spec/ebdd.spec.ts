@@ -18,7 +18,7 @@ describe
 
             strictEqual(listeners.length, 1);
 
-            let bddPreRequireListener: SinonSpy;
+            let bddPreRequireListener: SinonSpy | undefined;
             sandbox.stub(suite, 'on').callsFake
             (
                 function (this: Suite, event: string, listener: any): Suite
@@ -35,8 +35,9 @@ describe
 
             ok(bddSpy.calledOnce);
             ok(bddSpy.calledWithExactly(suite));
-            ok(bddPreRequireListener!.calledOnce);
-            ok(bddPreRequireListener!.calledWithExactly(context, file, mocha));
+            ok(bddPreRequireListener);
+            ok(bddPreRequireListener.calledOnce);
+            ok(bddPreRequireListener.calledWithExactly(context, file, mocha));
             strictEqual(typeof context.only, 'function');
             strictEqual(typeof context.skip, 'function');
             strictEqual(typeof context.when, 'function');
