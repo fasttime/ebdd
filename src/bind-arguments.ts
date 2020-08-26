@@ -25,7 +25,7 @@ export function bindArgumentsButLast
     const boundFn =
     function (this: ThisType, lastArg: LastArgType): RetType
     {
-        const argsAndLast = [...args, lastArg] as AppendToTuple<ArgListType, LastArgType>;
+        const argsAndLast = args.concat([lastArg]) as AppendToTuple<ArgListType, LastArgType>;
         const returnValue = fn.apply(this, argsAndLast);
         return returnValue;
     };

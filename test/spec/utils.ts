@@ -38,7 +38,7 @@ export function loadEBDD(): MochaGlobals
     }
     finally
     {
-        delete interfaces.ebdd;
+        delete (interfaces as Partial<typeof interfaces>).ebdd;
     }
     return context;
 }

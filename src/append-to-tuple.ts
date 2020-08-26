@@ -1,5 +1,5 @@
 type AppendHelper
-<TupleType extends unknown[], ElementType, ExtendedTupleType = OneMore<TupleType>> =
+<TupleType extends unknown[], ElementType, ExtendedTupleType = [unknown, ...TupleType]> =
 AsArray<
 {
     [KeyType in keyof ExtendedTupleType]:
@@ -11,10 +11,5 @@ type AppendToTuple<TupleType extends unknown[], ElementType> =
 AppendHelper<TupleType, ElementType>;
 
 type AsArray<TupleType> = TupleType extends unknown[] ? TupleType : never;
-
-type OneMore<TupleType extends unknown[]> =
-((arg0: unknown, ...args: TupleType) => unknown) extends
-(...args: infer ElementType) => unknown ?
-ElementType : never;
 
 export default AppendToTuple;

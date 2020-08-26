@@ -60,7 +60,7 @@ describe
         (
             () =>
             {
-                delete interfaces.ebdd;
+                delete (interfaces as Partial<typeof interfaces>).ebdd;
                 ({ sandbox } = clear());
             },
         );

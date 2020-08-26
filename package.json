@@ -51,7 +51,7 @@
     "rollup-plugin-node-globals": "latest",
     "sinon": "latest",
     "ts-node": "latest",
-    "typescript": "3.9"
+    "typescript": "4.0"
   },
   "peerDependencies": {
     "mocha": ">=3.0.0"
