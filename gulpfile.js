@@ -89,8 +89,7 @@ task
 
         const { dts, js } =
         src(['{src,test}/**/*.ts', '!test/node-legacy/**']).pipe(createProject('tsconfig.json')());
-        const condition =
-        ['src/append-to-tuple.d.ts', 'src/ebdd.d.ts', 'src/extensible-array.d.ts'];
+        const condition = ['src/ebdd.d.ts', 'src/extensible-array.d.ts'];
         const stream =
         mergeStream
         (

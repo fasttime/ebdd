@@ -1,4 +1,3 @@
-import AppendToTuple                            from './append-to-tuple';
 import { bindArguments, bindArgumentsButLast }  from './bind-arguments';
 import ExtensibleArray                          from './extensible-array';
 import TitleFormatter                           from './title-formatter';
@@ -133,11 +132,11 @@ extends ParameterizableFunction<ParameterizedSuiteFunction<ParamListType>>
     per
     <ParamType>
     (params: ParamCollection<ParamType>):
-    ParameterizedSuiteFunction<AppendToTuple<ParamListType, ParamType>>;
+    ParameterizedSuiteFunction<[...ParamListType, ParamType]>;
     per
     <InParamType, OutParamType>
     (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
-    ParameterizedSuiteFunction<AppendToTuple<ParamListType, OutParamType>>;
+    ParameterizedSuiteFunction<[...ParamListType, OutParamType]>;
     (titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>;
 }
 
@@ -147,11 +146,11 @@ extends ParameterizableFunction<ParameterizedTestFunction<ParamListType>>
     per
     <ParamType>
     (params: ParamCollection<ParamType>):
-    ParameterizedTestFunction<AppendToTuple<ParamListType, ParamType>>;
+    ParameterizedTestFunction<[...ParamListType, ParamType]>;
     per
     <InParamType, OutParamType>
     (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
-    ParameterizedTestFunction<AppendToTuple<ParamListType, OutParamType>>;
+    ParameterizedTestFunction<[...ParamListType, OutParamType]>;
     (titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>;
 }
 
@@ -162,7 +161,7 @@ type SuiteCallback<ParamListType extends unknown[] = []> =
 /** Callback function used for tests and hooks. */
 type TestCallback<ParamListType extends unknown[] = []> =
 ((this: Context, ...params: ParamListType) => PromiseLike<any>) |
-((this: Context, ...paramsAndDone: AppendToTuple<ParamListType, Done>) => void);
+((this: Context, ...paramsAndDone: [...ParamListType, Done]) => void);
 
 export interface UnparameterizedSuiteFunction
 extends ParameterizableFunction<UnparameterizedSuiteFunction>
@@ -286,7 +285,7 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
             params:         ParamCollection<InParamType>,
             paramMapper?:   ParamMapper<InParamType, OutParamType>,
         ):
-        ParameterizedSuiteFunction<AppendToTuple<ParamListType, OutParamType>> =>
+        ParameterizedSuiteFunction<[...ParamListType, OutParamType]> =>
         {
             validateParamMapper(paramMapper);
             const paramLists = multiplyParams(params, paramMapper, baseParamLists);
@@ -338,13 +337,14 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
                 {
                     type TestCallbackType =
                     (this: Context, ...params: ParamListType) => PromiseLike<any> | void;
-                    fnWrapper = bindArguments(fn as TestCallbackType, paramList);
+                    fnWrapper = bindArguments(fn as TestCallbackType, paramList as ParamListType);
                 }
                 else
                 {
                     type TestCallbackType =
-                    (this: Context, ...paramsAndDone: AppendToTuple<ParamListType, Done>) => void;
-                    fnWrapper = bindArgumentsButLast(fn as TestCallbackType, paramList);
+                    (this: Context, ...paramsAndDone: [...ParamListType, Done]) => void;
+                    fnWrapper =
+                    bindArgumentsButLast(fn as TestCallbackType, paramList as ParamListType);
                 }
                 const test = createTest(title, fnWrapper);
                 tests.parent = test.parent;
@@ -359,7 +359,7 @@ function createEBDDInterface(this: Suite, context: MochaGlobals, file: string, m
             params:         ParamCollection<InParamType>,
             paramMapper?:   ParamMapper<InParamType, OutParamType>,
         ):
-        ParameterizedTestFunction<AppendToTuple<ParamListType, OutParamType>> =>
+        ParameterizedTestFunction<[...ParamListType, OutParamType]> =>
         {
             validateParamMapper(paramMapper);
             const paramLists = multiplyParams(params, paramMapper, baseParamLists);
@@ -642,17 +642,17 @@ function multiplyParams
     paramMapper:    ParamMapper<InParamType, OutParamType> | undefined,
     baseParamLists: readonly ParamList<ParamListType>[],
 ):
-readonly ParamList<AppendToTuple<ParamListType, OutParamType>>[]
+readonly ParamList<[...ParamListType, OutParamType]>[]
 {
     const newParamLists = createParamLists(params, paramMapper, Mode.NORMAL);
-    const paramLists: ParamList<AppendToTuple<ParamListType, OutParamType>>[] = [];
+    const paramLists: ParamList<[...ParamListType, OutParamType]>[] = [];
     for (const baseParamList of baseParamLists)
     {
         const baseMode = baseParamList.mode;
         for (const newParamList of newParamLists)
         {
             const paramList =
-            [...baseParamList, ...newParamList] as AppendToTuple<ParamListType, OutParamType>;
+            [...baseParamList, ...newParamList] as [...ParamListType, OutParamType];
             const mode = maxMode(newParamList.mode, baseMode);
             makeParamList(paramList, mode);
             paramLists.push(paramList);
