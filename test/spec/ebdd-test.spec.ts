@@ -1,26 +1,13 @@
-import
-{
-    ParamInfo,
-    ParamOrParamInfo,
-    ParameterizedTestFunction,
-    UnparameterizedTestFunction,
-}
+import { ParamInfo }                                                from '../../src/ebdd';
+import type { ParamOrParamInfo, ParameterizedTestFunction, UnparameterizedTestFunction }
 from '../../src/ebdd';
-import { CallCountingStub, clear, isArrayBased, loadEBDD }                      from './utils';
-import { deepStrictEqual, ok, strictEqual, throws }                             from 'assert';
-import
-{
-    AsyncFunc,
-    Done,
-    Func,
-    MochaGlobals,
-    Suite,
-    Test,
-    TestFunction,
-    interfaces,
-}
-from 'mocha';
-import { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub, createSandbox, spy }  from 'sinon';
+import { clear, isArrayBased, loadEBDD }                            from './utils';
+import type { CallCountingStub }                                    from './utils';
+import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
+import { Suite, Test, interfaces }                                  from 'mocha';
+import type { AsyncFunc, Done, Func, MochaGlobals, TestFunction }   from 'mocha';
+import { createSandbox, spy }                                       from 'sinon';
+import type { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub }     from 'sinon';
 
 describe
 (

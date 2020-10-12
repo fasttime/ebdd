@@ -1,6 +1,7 @@
-import { ebdd }                             from '../../src/ebdd';
-import Mocha, { MochaGlobals, interfaces }  from 'mocha';
-import { SinonStub }                        from 'sinon';
+import { ebdd }                 from '../../src/ebdd';
+import Mocha, { interfaces }    from 'mocha';
+import type { MochaGlobals }    from 'mocha';
+import type { SinonStub }       from 'sinon';
 
 export interface CallCountingStub<TArgs extends any[] = any[], TReturnValue = any>
 extends SinonStub<TArgs, TReturnValue>

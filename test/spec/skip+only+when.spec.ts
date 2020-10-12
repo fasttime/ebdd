@@ -1,4 +1,4 @@
-import { ParamInfo }        from '../../src/ebdd';
+import type { ParamInfo }   from '../../src/ebdd';
 import { clear, loadEBDD }  from './utils';
 import { throws }           from 'assert';
 
