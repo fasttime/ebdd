@@ -124,8 +124,9 @@ task
     async () =>
     {
         const { homepage, version } = require('./package.json');
+        const { nodeResolve }       = require('@rollup/plugin-node-resolve');
 
-        const inputOptions = { input: '.tmp-out/src/main.js' };
+        const inputOptions = { input: '.tmp-out/src/main.js', plugins: [nodeResolve()] };
         const outputOptions = { banner: `// EBDD ${version} – ${homepage}\n`, file: 'ebdd.js' };
         await bundle(inputOptions, outputOptions);
     },
@@ -136,14 +137,15 @@ task
     'bundle:test',
     async () =>
     {
-        const builtins  = require('rollup-plugin-node-builtins');
-        const globals   = require('rollup-plugin-node-globals');
+        const { nodeResolve }   = require('@rollup/plugin-node-resolve');
+        const builtins          = require('rollup-plugin-node-builtins');
+        const globals           = require('rollup-plugin-node-globals');
 
         const inputOptions =
         {
             external: ['mocha', 'sinon'],
             input: '.tmp-out/test/browser-spec-runner.js',
-            plugins: [builtins(), globals({ buffer: false })],
+            plugins: [builtins(), globals({ buffer: false }), nodeResolve()],
         };
         const outputOptions =
         {
