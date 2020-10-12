@@ -125,8 +125,13 @@ task
     {
         const { homepage, version } = require('./package.json');
         const { nodeResolve }       = require('@rollup/plugin-node-resolve');
+        const cleanup               = require('rollup-plugin-cleanup');
 
-        const inputOptions = { input: '.tmp-out/src/main.js', plugins: [nodeResolve()] };
+        const inputOptions =
+        {
+            input: '.tmp-out/src/main.js',
+            plugins: [cleanup({ comments: /^(?!\*!)/, maxEmptyLines: -1 }), nodeResolve()],
+        };
         const outputOptions = { banner: `// EBDD ${version} – ${homepage}\n`, file: 'ebdd.js' };
         await bundle(inputOptions, outputOptions);
     },
