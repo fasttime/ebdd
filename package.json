@@ -27,9 +27,9 @@
   },
   "scripts": {
     "build": "npm install && gulp",
-    "legacy-build": "node build/prepare-legacy-test && npm run legacy-test",
+    "legacy-build": "node dev/prepare-legacy-test && npm run legacy-test",
     "legacy-test": "node -- test/node-legacy/node_modules/mocha/bin/mocha --check-leaks --require=./test/node-legacy-adapter test/node-legacy/test/spec/**/*.spec.js",
-    "prepare": "node build/patch-sinon",
+    "prepare": "node dev/patch-sinon",
     "test": "TS_NODE_PROJECT=test/tsconfig.json mocha --check-leaks --require=ts-node/register test/spec/**/*.spec.ts"
   },
   "devDependencies": {
@@ -54,7 +54,7 @@
     "sinon": "latest",
     "ts-node": "latest",
     "tslib": "2",
-    "typescript": "4.0"
+    "typescript": "4.1"
   },
   "peerDependencies": {
     "mocha": ">=3.0.0"

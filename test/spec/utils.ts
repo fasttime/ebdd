@@ -3,15 +3,17 @@ import Mocha, { interfaces }    from 'mocha';
 import type { MochaGlobals }    from 'mocha';
 import type { SinonStub }       from 'sinon';
 
+const EMPTY_OBJ = Object.create(null) as { };
+
 export interface CallCountingStub<TArgs extends any[] = any[], TReturnValue = any>
 extends SinonStub<TArgs, TReturnValue>
 {
     nextCallIndex?: number;
 }
 
-export function clear<T extends object>(): T
+export function clear<T extends { }>(): T
 {
-    return Object.create(null) as T;
+    return EMPTY_OBJ as T;
 }
 
 export function isArrayBased(array: unknown[]): boolean

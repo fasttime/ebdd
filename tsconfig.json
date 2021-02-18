@@ -5,6 +5,7 @@
     "importHelpers": true,
     "module": "ES2020",
     "moduleResolution": "node",
+    "skipLibCheck": true,
     "strict": true,
     "target": "ES5"
   },

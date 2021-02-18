@@ -42,7 +42,7 @@ task
                 src: ['test/*.js', '!test/browser-spec-runner.js'],
             },
             {
-                src: ['build/**/*.js', 'gulpfile.js'],
+                src: ['dev/**/*.js', 'gulpfile.js'],
                 envs: 'node',
                 parserOptions: { ecmaVersion: 11 },
             },
