@@ -45,11 +45,11 @@ async function tsc()
 {
     try
     {
-        const { promises: { rmdir } }   = require('fs');
-        const { dirname }               = require('path');
+        const { promises: { rm } }  = require('fs');
+        const { dirname }           = require('path');
 
         process.chdir(dirname(__dirname));
-        await rmdir(NODE_LEGACY_DIR, { recursive: true });
+        await rm(NODE_LEGACY_DIR, { force: true, recursive: true });
         await Promise.all([tsc(), npmInstall()]);
     }
     catch (error)

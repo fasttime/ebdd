@@ -7,7 +7,7 @@ task
     'clean',
     async () =>
     {
-        const { promises: { rmdir } } = require('fs');
+        const { promises: { rm } } = require('fs');
 
         const paths =
         [
@@ -19,8 +19,8 @@ task
             'test/browser-spec-runner.js',
             'test/node-legacy',
         ];
-        const options = { recursive: true };
-        await Promise.all(paths.map(path => rmdir(path, options)));
+        const options = { force: true, recursive: true };
+        await Promise.all(paths.map(path => rm(path, options)));
     },
 );
 
