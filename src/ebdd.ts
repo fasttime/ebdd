@@ -129,6 +129,7 @@ interface ParameterizableFunction<SubType extends ParameterizableFunction<SubTyp
 export interface ParameterizedSuiteFunction<ParamListType extends unknown[]>
 extends ParameterizableFunction<ParameterizedSuiteFunction<ParamListType>>
 {
+    (titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>;
     per
     <ParamType>
     (params: ParamCollection<ParamType>):
@@ -137,12 +138,12 @@ extends ParameterizableFunction<ParameterizedSuiteFunction<ParamListType>>
     <InParamType, OutParamType>
     (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedSuiteFunction<[...ParamListType, OutParamType]>;
-    (titlePattern: string, fn: SuiteCallback<ParamListType>): SpecItemArray<Suite>;
 }
 
 export interface ParameterizedTestFunction<ParamListType extends unknown[]>
 extends ParameterizableFunction<ParameterizedTestFunction<ParamListType>>
 {
+    (titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>;
     per
     <ParamType>
     (params: ParamCollection<ParamType>):
@@ -151,7 +152,6 @@ extends ParameterizableFunction<ParameterizedTestFunction<ParamListType>>
     <InParamType, OutParamType>
     (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedTestFunction<[...ParamListType, OutParamType]>;
-    (titlePattern: string, fn: TestCallback<ParamListType>): SpecItemArray<Test>;
 }
 
 /** Callback function used for suites. */
@@ -166,23 +166,23 @@ type TestCallback<ParamListType extends unknown[] = []> =
 export interface UnparameterizedSuiteFunction
 extends ParameterizableFunction<UnparameterizedSuiteFunction>
 {
+    (title: string, fn: SuiteCallback): Suite;
     per<ParamType>(params: ParamCollection<ParamType>): ParameterizedSuiteFunction<[ParamType]>;
     per
     <InParamType, OutParamType>
     (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedSuiteFunction<[OutParamType]>;
-    (title: string, fn: SuiteCallback): Suite;
 }
 
 export interface UnparameterizedTestFunction
 extends ParameterizableFunction<UnparameterizedTestFunction>
 {
+    (title: string, fn: TestCallback): Test;
     per<ParamType>(params: ParamCollection<ParamType>): ParameterizedTestFunction<[ParamType]>;
     per
     <InParamType, OutParamType>
     (params: ParamCollection<InParamType>, paramMapper: ParamMapper<InParamType, OutParamType>):
     ParameterizedTestFunction<[OutParamType]>;
-    (title: string, fn: TestCallback): Test;
 }
 
 export class ParamInfo<ParamType>

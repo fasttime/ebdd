@@ -115,11 +115,14 @@ describe
 
             // Return value
             ok(isArrayBased(actualDescribeReturnValue));
-            deepStrictEqual
+            strictEqual(actualDescribeReturnValue.length, bddDescribeAnyCalls.length);
+            bddDescribeAnyCalls.forEach
             (
-                [...actualDescribeReturnValue],
-                bddDescribeAnyCalls.map
-                (({ returnValue }: SinonSpyCall<any[], Suite>) => returnValue),
+                ({ returnValue: expectedReturnValue }: SinonSpyCall, index: number): void =>
+                {
+                    const actualReturnValue = actualDescribeReturnValue[index];
+                    strictEqual(actualReturnValue, expectedReturnValue);
+                },
             );
 
             // Return value parent

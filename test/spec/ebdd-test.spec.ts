@@ -168,10 +168,14 @@ describe
 
             // Return value
             ok(isArrayBased(actualItReturnValue));
-            deepStrictEqual
+            strictEqual(actualItReturnValue.length, bddCallDataList.length);
+            bddItAnyCalls.forEach
             (
-                [...actualItReturnValue],
-                bddItAnyCalls.map(({ returnValue }: SinonSpyCall<any[], Test>) => returnValue),
+                ({ returnValue: expectedReturnValue }: SinonSpyCall, index: number): void =>
+                {
+                    const actualReturnValue = actualItReturnValue[index];
+                    strictEqual(actualReturnValue, expectedReturnValue);
+                },
             );
 
             // Return value parent

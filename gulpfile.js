@@ -7,7 +7,7 @@ task
     'clean',
     async () =>
     {
-        const { promises: { rm } } = require('fs');
+        const { rm } = require('fs/promises');
 
         const paths =
         [
@@ -27,11 +27,11 @@ task
 task
 (
     'lint',
-    () =>
+    async () =>
     {
-        const lint = require('@fasttime/gulp-lint');
+        const { lint } = require('@fasttime/lint');
 
-        const stream =
+        await
         lint
         (
             {
@@ -47,7 +47,6 @@ task
                 parserOptions: { ecmaVersion: 11 },
             },
         );
-        return stream;
     },
 );
 

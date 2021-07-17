@@ -14,10 +14,10 @@ function endOf(childProcess)
 
 async function npmInstall()
 {
-    const { spawn }                             = require('child_process');
-    const { promises: { mkdir, writeFile } }    = require('fs');
-    const { EOL }                               = require('os');
-    const { join }                              = require('path');
+    const { spawn }             = require('child_process');
+    const { mkdir, writeFile }  = require('fs/promises');
+    const { EOL }               = require('os');
+    const { join }              = require('path');
 
     await mkdir(NODE_LEGACY_DIR, { recursive: true });
     const pkg =
@@ -45,8 +45,8 @@ async function tsc()
 {
     try
     {
-        const { promises: { rm } }  = require('fs');
-        const { dirname }           = require('path');
+        const { rm }        = require('fs/promises');
+        const { dirname }   = require('path');
 
         process.chdir(dirname(__dirname));
         await rm(NODE_LEGACY_DIR, { force: true, recursive: true });
@@ -55,6 +55,7 @@ async function tsc()
     catch (error)
     {
         console.error(error);
+        process.exitCode = 1;
     }
 }
 )();
