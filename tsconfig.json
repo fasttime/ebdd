@@ -5,9 +5,9 @@
     "importHelpers": true,
     "module": "ES2020",
     "moduleResolution": "node",
-    "skipLibCheck": true,
     "strict": true,
-    "target": "ES5"
+    "target": "ES5",
+    "types": ["mocha", "node"]
   },
   "exclude": [
     "test/node-legacy"

@@ -44,15 +44,13 @@ describe
             {
                 function clearGlobals(): void
                 {
-                    delete (self as Window & typeof globalThis & { Mocha: unknown; }).Mocha;
-                    // @ts-expect-error
-                    delete global.self;
+                    delete (self as typeof self & { Mocha: unknown; }).Mocha;
+                    delete (global as typeof global | { self: unknown; }).self;
                 }
 
                 function mockSelfIfUndefined(): void
                 {
-                    // @ts-expect-error
-                    global.self = global;
+                    (global as typeof global | { self: unknown; }).self = global;
                 }
 
                 it

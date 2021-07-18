@@ -6,11 +6,6 @@
 npm install --save-dev ebdd
 ```
 
-To install TypeScript types, run
-```console
-npm install --save-dev @types/ebdd@npm:ebdd
-```
-
 ## Usage
 
 ### Command line

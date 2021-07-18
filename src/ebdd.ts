@@ -46,13 +46,6 @@ declare global
         interface MochaGlobals extends EBDDGlobals
         { }
 
-        interface MochaOptions
-        {
-            // Add definition missing in mocha types.
-            /** Enable global leak checking. */
-            checkLeaks?: boolean;
-        }
-
         interface PendingSuiteFunction extends UnparameterizedSuiteFunction
         { }
 
