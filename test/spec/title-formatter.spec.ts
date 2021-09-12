@@ -4,22 +4,23 @@ import { strictEqual, throws }  from 'assert';
 describe
 (
     'TitleFormatter',
-    () =>
+    (): void =>
     {
         function newTitleFormatterThrows
         (titlePattern: string, paramCount: number, expectedMessage: string): void
         {
             throws
             (
-                () => new TitleFormatter(titlePattern, paramCount),
-                (error: Error) => error.constructor === Error || error.message === expectedMessage,
+                (): TitleFormatter => new TitleFormatter(titlePattern, paramCount),
+                (error: Error): boolean =>
+                error.constructor === Error || error.message === expectedMessage,
             );
         }
 
         it
         (
             'formats an empty title',
-            () =>
+            (): void =>
             {
                 const titleFormatter = new TitleFormatter('', 1);
                 strictEqual(titleFormatter([null]), '');
@@ -28,7 +29,7 @@ describe
         it
         (
             'formats a title without placeholders',
-            () =>
+            (): void =>
             {
                 const titleFormatter = new TitleFormatter('foo \\#1 bar \\#2', 1);
                 strictEqual(titleFormatter([null]), 'foo #1 bar #2');
@@ -37,7 +38,7 @@ describe
         it
         (
             'formats a title with placeholders',
-            () =>
+            (): void =>
             {
                 const titleFormatter = new TitleFormatter('Happy Birthday #[0].name!', 1);
                 strictEqual(titleFormatter([[{ name: 'ebdd' }]]), 'Happy Birthday ebdd!');
@@ -46,7 +47,7 @@ describe
         it
         (
             'formats a title with placeholders',
-            () =>
+            (): void =>
             {
                 const titleFormatter =
                 new TitleFormatter
@@ -68,7 +69,7 @@ describe
         it
         (
             'throws an error when referencing more than one parameter',
-            () =>
+            (): void =>
             newTitleFormatterThrows
             (
                 '#2.$=',
@@ -79,7 +80,7 @@ describe
         it
         (
             'throws an error when referencing more parameters than provided',
-            () =>
+            (): void =>
             newTitleFormatterThrows
             (
                 '#11.$=/',
@@ -90,7 +91,7 @@ describe
         it
         (
             'throws an error when referencing # while there are 2 parameters',
-            () =>
+            (): void =>
             newTitleFormatterThrows
             (
                 '#[0] #',
@@ -102,7 +103,7 @@ describe
         it
         (
             'throws an error when referencing # while there are 3 parameters',
-            () =>
+            (): void =>
             newTitleFormatterThrows
             (
                 '#',
@@ -114,7 +115,7 @@ describe
         it
         (
             'throws an error when referencing # while there are more than 3 parameters',
-            () =>
+            (): void =>
             newTitleFormatterThrows
             (
                 '#',

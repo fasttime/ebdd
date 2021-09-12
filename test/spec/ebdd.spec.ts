@@ -9,7 +9,7 @@ import type { SinonSandbox, SinonSpy }  from 'sinon';
 describe
 (
     'EBDD initializes correctly',
-    () =>
+    (): void =>
     {
         function test(mocha: Mocha = new Mocha(), ebddThis?: Mocha): void
         {
@@ -49,18 +49,18 @@ describe
 
         beforeEach
         (
-            () =>
+            (): void =>
             {
                 interfaces.ebdd = ebdd;
                 sandbox = createSandbox();
             },
         );
 
-        afterEach(() => sandbox.restore());
+        afterEach((): void => sandbox.restore());
 
         after
         (
-            () =>
+            (): void =>
             {
                 delete (interfaces as Partial<typeof interfaces>).ebdd;
                 ({ sandbox } = clear());
@@ -70,7 +70,7 @@ describe
         it
         (
             'normally',
-            () =>
+            (): void =>
             {
                 test();
             },
@@ -80,12 +80,12 @@ describe
         describe
         (
             'without getMaxListeners in suite',
-            () =>
+            (): void =>
             {
                 it
                 (
                     'with _maxListeners not set',
-                    function ()
+                    function (): void
                     {
                         const { prototype } = Suite;
                         if (!('getMaxListeners' in prototype))
@@ -100,7 +100,7 @@ describe
                 it
                 (
                     'with _maxListeners set',
-                    function ()
+                    function (): void
                     {
                         const { prototype } = Suite;
                         if (!('getMaxListeners' in prototype))
@@ -137,7 +137,7 @@ describe
         it
         (
             'when called on Mocha object',
-            () =>
+            (): void =>
             {
                 const mocha = new Mocha();
                 test(mocha, mocha);

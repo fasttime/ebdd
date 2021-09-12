@@ -12,7 +12,7 @@ import type { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub }     from 'sinon'
 describe
 (
     'EBDD test functions',
-    () =>
+    (): void =>
     {
         interface BDDCallData
         {
@@ -36,7 +36,7 @@ describe
             }
             {
                 const fn =
-                (done: Done): void =>
+                (done: Done): void => // eslint-disable-line @typescript-eslint/no-unused-vars
                 { };
                 const actualItReturnValue = ebddItAny(title, fn);
                 ok(it.calledTwice);
@@ -57,7 +57,7 @@ describe
         {
             {
                 const testCallback =
-                (letter: string): void =>
+                (letter: string): void => // eslint-disable-line @typescript-eslint/no-unused-vars
                 { };
 
                 assertBDDItsWithParams
@@ -66,7 +66,7 @@ describe
                     bddCallDataList,
                     '"#" is good',
                     testCallback,
-                    ([letter]: readonly unknown[]) => `"${letter}" is good`,
+                    ([letter]: readonly unknown[]): string => `"${letter}" is good`,
                     expectedParamsList,
                     [],
                     3000,
@@ -74,11 +74,12 @@ describe
             }
             {
                 const testCallback =
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 (letter: string, done: Done): void =>
                 { };
 
                 const done: Done =
-                () =>
+                (): void =>
                 { };
 
                 assertBDDItsWithParams
@@ -87,7 +88,7 @@ describe
                     bddCallDataList,
                     '"#" is good',
                     testCallback,
-                    ([letter]: readonly unknown[]) => `"${letter}" is good`,
+                    ([letter]: readonly unknown[]): string => `"${letter}" is good`,
                     expectedParamsList,
                     [done],
                     8000,
@@ -116,7 +117,7 @@ describe
             // it callback order
             (bddItAnyCalls as unknown as SinonSpy[]).reduce
             (
-                (previousSpy: SinonSpy, currentSpy: SinonSpy) =>
+                (previousSpy: SinonSpy, currentSpy: SinonSpy): SinonSpy =>
                 {
                     ok(currentSpy.calledImmediatelyAfter(previousSpy));
                     return currentSpy;
@@ -126,7 +127,7 @@ describe
             // it callback counts
             uniqueBDDItAny.forEach
             (
-                (it: CallCountingStub) =>
+                (it: CallCountingStub): void =>
                 {
                     strictEqual(it.callCount, it.nextCallIndex);
                 },
@@ -135,7 +136,7 @@ describe
             // Test titles
             bddItAnyCalls.forEach
             (
-                ({ args: [actualTitle] }: SinonSpyCall, index: number) =>
+                ({ args: [actualTitle] }: SinonSpyCall, index: number): void =>
                 {
                     const expectedParams = expectedParamsList[index];
                     const expectedTitle = getExpectedTitle(expectedParams);
@@ -232,7 +233,7 @@ describe
 
         beforeEach
         (
-            () =>
+            (): void =>
             {
                 interface BDDIt extends SinonStub
                 {
@@ -273,11 +274,11 @@ describe
             },
         );
 
-        afterEach(() => sandbox.restore());
+        afterEach((): void => sandbox.restore());
 
         after
         (
-            () =>
+            (): void =>
             {
                 ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent, sandbox } = clear());
             },
@@ -286,43 +287,43 @@ describe
         it
         (
             'it',
-            () => assertBDDIt(ebdd.it, bddIt),
+            (): void => assertBDDIt(ebdd.it, bddIt),
         );
 
         it
         (
             'it.only',
-            () => assertBDDIt(ebdd.it.only, bddItOnly),
+            (): void => assertBDDIt(ebdd.it.only, bddItOnly),
         );
 
         it
         (
             'it.only.only',
-            () => throws(() => void ebdd.it.only.only, Error),
+            (): void => throws((): unknown => void ebdd.it.only.only, Error),
         );
 
         it
         (
             'it.only.skip',
-            () => throws(() => void ebdd.it.only.skip, Error),
+            (): void => throws((): unknown => void ebdd.it.only.skip, Error),
         );
 
         it
         (
             'it.only.when(true)',
-            () => assertBDDIt(ebdd.it.only.when(true), bddItOnly),
+            (): void => assertBDDIt(ebdd.it.only.when(true), bddItOnly),
         );
 
         it
         (
             'it.only.when(false)',
-            () => assertBDDIt(ebdd.it.only.when(false), bddItSkip),
+            (): void => assertBDDIt(ebdd.it.only.when(false), bddItSkip),
         );
 
         it
         (
             'it.only.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.only.per(getTestParams());
                 const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip, bddItOnly, bddItSkip];
@@ -334,37 +335,37 @@ describe
         it
         (
             'it.skip',
-            () => assertBDDIt(ebdd.it.skip, bddItSkip),
+            (): void => assertBDDIt(ebdd.it.skip, bddItSkip),
         );
 
         it
         (
             'it.skip.only',
-            () => throws(() => void ebdd.it.skip.only, Error),
+            (): void => throws((): unknown => void ebdd.it.skip.only, Error),
         );
 
         it
         (
             'it.skip.skip',
-            () => throws(() => void ebdd.it.skip.skip, Error),
+            (): void => throws((): unknown => void ebdd.it.skip.skip, Error),
         );
 
         it
         (
             'it.skip.when(true)',
-            () => assertBDDIt(ebdd.it.skip.when(true), bddItSkip),
+            (): void => assertBDDIt(ebdd.it.skip.when(true), bddItSkip),
         );
 
         it
         (
             'it.skip.when(false)',
-            () => assertBDDIt(ebdd.it.skip.when(false), bddItSkip),
+            (): void => assertBDDIt(ebdd.it.skip.when(false), bddItSkip),
         );
 
         it
         (
             'it.skip.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.skip.per(getTestParams());
                 const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
@@ -376,37 +377,37 @@ describe
         it
         (
             'it.when(true)',
-            () => assertBDDIt(ebdd.it.when(true), bddIt),
+            (): void => assertBDDIt(ebdd.it.when(true), bddIt),
         );
 
         it
         (
             'it.when(true).only',
-            () => assertBDDIt(ebdd.it.when(true).only, bddItOnly),
+            (): void => assertBDDIt(ebdd.it.when(true).only, bddItOnly),
         );
 
         it
         (
             'it.when(true).skip',
-            () => assertBDDIt(ebdd.it.when(true).skip, bddItSkip),
+            (): void => assertBDDIt(ebdd.it.when(true).skip, bddItSkip),
         );
 
         it
         (
             'it.when(true).when(true)',
-            () => assertBDDIt(ebdd.it.when(true).when(true), bddIt),
+            (): void => assertBDDIt(ebdd.it.when(true).when(true), bddIt),
         );
 
         it
         (
             'it.when(true).when(false)',
-            () => assertBDDIt(ebdd.it.when(true).when(false), bddItSkip),
+            (): void => assertBDDIt(ebdd.it.when(true).when(false), bddItSkip),
         );
 
         it
         (
             'it.when(true).per([...])',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.when(true).per(getTestParams());
                 const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
@@ -418,37 +419,37 @@ describe
         it
         (
             'it.when(false)',
-            () => assertBDDIt(ebdd.it.when(false), bddItSkip),
+            (): void => assertBDDIt(ebdd.it.when(false), bddItSkip),
         );
 
         it
         (
             'it.when(false).only',
-            () => assertBDDIt(ebdd.it.when(false).only, bddItSkip),
+            (): void => assertBDDIt(ebdd.it.when(false).only, bddItSkip),
         );
 
         it
         (
             'it.when(false).skip',
-            () => assertBDDIt(ebdd.it.when(false).skip, bddItSkip),
+            (): void => assertBDDIt(ebdd.it.when(false).skip, bddItSkip),
         );
 
         it
         (
             'it.when(false).when(true)',
-            () => assertBDDIt(ebdd.it.when(false).when(true), bddItSkip),
+            (): void => assertBDDIt(ebdd.it.when(false).when(true), bddItSkip),
         );
 
         it
         (
             'it.when(false).when(false)',
-            () => assertBDDIt(ebdd.it.when(false).when(false), bddItSkip),
+            (): void => assertBDDIt(ebdd.it.when(false).when(false), bddItSkip),
         );
 
         it
         (
             'it.when(false).per([...])',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.when(false).per(getTestParams());
                 const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
@@ -460,7 +461,7 @@ describe
         it
         (
             'it.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.per(getTestParams());
                 const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
@@ -472,10 +473,10 @@ describe
         it
         (
             'it.per([...], ...)',
-            () =>
+            (): void =>
             {
                 const ebddItAny =
-                ebdd.it.per(getTestParams(), (letter: string) => `${letter}${letter}`);
+                ebdd.it.per(getTestParams(), (letter: string): string => `${letter}${letter}`);
                 const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
 
                 assertBDDIts(ebddItAny, bddCallDataList, [['AA'], ['BB'], ['CC'], ['DD'], ['EE']]);
@@ -485,7 +486,7 @@ describe
         it
         (
             'it.per([...]).only',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.per(getTestParams()).only;
                 const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip, bddItOnly, bddItSkip];
@@ -497,7 +498,7 @@ describe
         it
         (
             'it.per([...]).skip',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.per(getTestParams()).skip;
                 const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
@@ -509,7 +510,7 @@ describe
         it
         (
             'it.per([...]).when(true)',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.per(getTestParams()).when(true);
                 const bddCallDataList = [bddIt, bddItOnly, bddItSkip, bddIt, bddItSkip];
@@ -521,7 +522,7 @@ describe
         it
         (
             'it.per([...]).when(false)',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.it.per(getTestParams()).when(false);
                 const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
@@ -533,7 +534,7 @@ describe
         it
         (
             'it.per([...]).per([...])',
-            () =>
+            (): void =>
             {
                 const ebddItAny =
                 ebdd.it
@@ -567,6 +568,7 @@ describe
                 ];
 
                 const testCallback =
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 (count: number, food: string): void =>
                 { };
 
@@ -576,7 +578,7 @@ describe
                     bddCallDataList,
                     '#1 #2',
                     testCallback,
-                    ([count, food]: readonly unknown[]) => `${count} ${food}`,
+                    ([count, food]: readonly unknown[]): string => `${count} ${food}`,
                     expectedParamsList,
                     [],
                     5000,
@@ -587,43 +589,43 @@ describe
         it
         (
             'specify',
-            () => strictEqual(ebdd.specify, ebdd.it),
+            (): void => strictEqual(ebdd.specify, ebdd.it),
         );
 
         it
         (
             'xit',
-            () => assertBDDIt(ebdd.xit, bddItSkip),
+            (): void => assertBDDIt(ebdd.xit, bddItSkip),
         );
 
         it
         (
             'xit.only',
-            () => throws(() => void ebdd.xit.only, Error),
+            (): void => throws((): unknown => void ebdd.xit.only, Error),
         );
 
         it
         (
             'xit.skip',
-            () => throws(() => void ebdd.xit.skip, Error),
+            (): void => throws((): unknown => void ebdd.xit.skip, Error),
         );
 
         it
         (
             'xit.when(true)',
-            () => assertBDDIt(ebdd.xit.when(true), bddItSkip),
+            (): void => assertBDDIt(ebdd.xit.when(true), bddItSkip),
         );
 
         it
         (
             'xit.when(false)',
-            () => assertBDDIt(ebdd.xit.when(false), bddItSkip),
+            (): void => assertBDDIt(ebdd.xit.when(false), bddItSkip),
         );
 
         it
         (
             'xit.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddItAny = ebdd.xit.per(getTestParams());
                 const bddCallDataList = [bddItSkip, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
@@ -635,61 +637,62 @@ describe
         it
         (
             'xspecify',
-            () => strictEqual(ebdd.xspecify, ebdd.xit),
+            (): void => strictEqual(ebdd.xspecify, ebdd.xit),
         );
 
         it
         (
             'unparameterized it with undefined title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.it(undefined, fn), TypeError);
+                throws((): unknown => ebdd.it(undefined, fn), TypeError);
             },
         );
 
         it
         (
             'unparameterized it with invalid title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.it({ }, fn), TypeError);
+                throws((): unknown => ebdd.it({ }, fn), TypeError);
             },
         );
 
         it
         (
             'unparameterized it with undefined callback function',
-            () => throws(() => ebdd.it('test', undefined), TypeError),
+            (): void => throws((): unknown => ebdd.it('test', undefined), TypeError),
         );
 
         it
         (
             'unparameterized it with invalid callback function',
             // @ts-expect-error
-            () => throws(() => ebdd.it('test', { }), TypeError),
+            (): void => throws((): unknown => ebdd.it('test', { }), TypeError),
         );
 
         it
         (
             'unparameterized it with callback function accepting wrong number of arguments',
-            () =>
+            (): void =>
             {
                 const fn =
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 (arg0: never, arg1: never): void =>
                 { };
                 throws
                 (
                     // @ts-expect-error
-                    () => ebdd.it('test', fn),
-                    (error: unknown) =>
+                    (): unknown => ebdd.it('test', fn),
+                    (error: unknown): boolean =>
                     error instanceof RangeError && /\b0 parameters\b/.test(error.message),
                 );
             },
@@ -698,26 +701,26 @@ describe
         it
         (
             'parameterized it with undefined title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.it.per([0])(undefined, fn), TypeError);
+                throws((): unknown => ebdd.it.per([0])(undefined, fn), TypeError);
             },
         );
 
         it
         (
             'parameterized it with invalid title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.it.per([0])({ }, fn), TypeError);
+                throws((): unknown => ebdd.it.per([0])({ }, fn), TypeError);
             },
         );
 
@@ -725,28 +728,28 @@ describe
         (
             'parameterized it with undefined callback function',
             // @ts-expect-error
-            () => throws(() => ebdd.it.per([0])('test', undefined), TypeError),
+            (): void => throws((): unknown => ebdd.it.per([0])('test', undefined), TypeError),
         );
 
         it
         (
             'parameterized it with invalid callback function',
             // @ts-expect-error
-            () => throws(() => ebdd.it.per([0])('test', { }), TypeError),
+            (): void => throws((): unknown => ebdd.it.per([0])('test', { }), TypeError),
         );
 
         it
         (
             'simply parameterized it with callback function accepting wrong number of arguments',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 throws
                 (
-                    () => ebdd.it.per([0])('test', fn),
-                    (error: unknown) =>
+                    (): unknown => ebdd.it.per([0])('test', fn),
+                    (error: unknown): boolean =>
                     error instanceof RangeError && /\b1 parameter\b/.test(error.message),
                 );
             },
@@ -755,15 +758,15 @@ describe
         it
         (
             'multiparameterized it with callback function accepting wrong number of arguments',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 throws
                 (
-                    () => ebdd.it.per([0]).per([1])('test', fn),
-                    (error: unknown) =>
+                    (): unknown => ebdd.it.per([0]).per([1])('test', fn),
+                    (error: unknown): boolean =>
                     error instanceof RangeError && /\b2 parameters\b/.test(error.message),
                 );
             },
@@ -773,40 +776,40 @@ describe
         (
             'per with undefined params argument',
             // @ts-expect-error
-            () => throws(() => ebdd.it.per(undefined), TypeError),
+            (): void => throws((): unknown => ebdd.it.per(undefined), TypeError),
         );
 
         it
         (
             'per with null params argument',
             // @ts-expect-error
-            () => throws(() => ebdd.it.per(null), TypeError),
+            (): void => throws((): unknown => ebdd.it.per(null), TypeError),
         );
 
         it
         (
             'per with empty array-like params argument',
-            () => throws(() => ebdd.it.per(''), TypeError),
+            (): void => throws((): unknown => ebdd.it.per(''), TypeError),
         );
 
         it
         (
             'per with invalid parameter',
-            () =>
+            (): void =>
             {
                 // @ts-expect-error
                 const paramInfo = new ParamInfo(42, 'foo');
-                throws(() => ebdd.it.per([paramInfo]), TypeError);
+                throws((): unknown => ebdd.it.per([paramInfo]), TypeError);
             },
         );
 
         it
         (
             'per with invalid paramMapper argument',
-            () =>
+            (): void =>
             {
                 // @ts-expect-error
-                throws(() => ebdd.it.per([1], 'WRONG'), TypeError);
+                throws((): void => ebdd.it.per([1], 'WRONG'), TypeError);
             },
         );
     },

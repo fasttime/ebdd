@@ -1,0 +1,6 @@
+{
+    "files": [],
+    "dependencies": {
+        "mocha": "*"
+    }
+}

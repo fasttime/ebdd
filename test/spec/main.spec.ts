@@ -12,23 +12,23 @@ function requireMain(stubs?: Readonly<Partial<PostrequireStubs>>): unknown
 describe
 (
     'EBDD registration',
-    () =>
+    (): void =>
     {
         it
         (
             'in an unsupported environment',
-            function ()
+            function (): void
             {
                 if (typeof self !== 'undefined')
                     this.skip();
-                throws(() => requireMain({ module: undefined }), Error);
+                throws((): unknown => requireMain({ module: undefined }), Error);
             },
         );
 
         it
         (
             'in Node.js',
-            function ()
+            function (): void
             {
                 if (typeof self !== 'undefined')
                     this.skip();
@@ -40,7 +40,7 @@ describe
         describe
         (
             'in a browser',
-            () =>
+            (): void =>
             {
                 function clearGlobals(): void
                 {
@@ -56,7 +56,7 @@ describe
                 it
                 (
                     'before Mocha is defined',
-                    () =>
+                    (): void =>
                     {
                         mockSelfIfUndefined();
                         try
@@ -79,7 +79,7 @@ describe
                 it
                 (
                     'after Mocha is defined',
-                    () =>
+                    (): void =>
                     {
                         try
                         {

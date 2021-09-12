@@ -1,6 +1,8 @@
-#!/usr/bin/env node
-
-'use strict';
+import { fork, spawn }          from 'child_process';
+import { mkdir, rm, writeFile } from 'fs/promises';
+import { createRequire }        from 'module';
+import { EOL }                  from 'os';
+import { join }                 from 'path';
 
 const NODE_LEGACY_DIR = 'test/node-legacy';
 
@@ -14,48 +16,23 @@ function endOf(childProcess)
 
 async function npmInstall()
 {
-    const { spawn }             = require('child_process');
-    const { mkdir, writeFile }  = require('fs/promises');
-    const { EOL }               = require('os');
-    const { join }              = require('path');
-
     await mkdir(NODE_LEGACY_DIR, { recursive: true });
-    const pkg =
-    {
-        devDependencies: { mocha: '3.5.3', postrequire: '*', sinon: '2.4.1', tslib: '2' },
-        private: true,
-    };
+    const pkg = { dependencies: { mocha: '3', postrequire: '*', sinon: '2' }, private: true };
     const contents = JSON.stringify(pkg, null, 2) + EOL;
     const path = join(NODE_LEGACY_DIR, 'package.json');
     await writeFile(path, contents);
-    const childProcess = spawn('npm', ['install'], { cwd: NODE_LEGACY_DIR, stdio: 'inherit' });
+    const childProcess =
+    // Option "shell" is required on Windows.
+    spawn('npm', ['install', '--silent'], { cwd: NODE_LEGACY_DIR, shell: true, stdio: 'inherit' });
     await endOf(childProcess);
 }
 
 async function tsc()
 {
-    const { fork } = require('child_process');
-
-    const tscPath = require.resolve('typescript/bin/tsc');
-    const childProcess = fork(tscPath, ['--build', 'test/tsconfig.json']);
+    const tscPath = createRequire(import.meta.url).resolve('typescript/bin/tsc');
+    const childProcess = fork(tscPath, ['--outDir', 'test/node-legacy']);
     await endOf(childProcess);
 }
 
-(async () =>
-{
-    try
-    {
-        const { rm }        = require('fs/promises');
-        const { dirname }   = require('path');
-
-        process.chdir(dirname(__dirname));
-        await rm(NODE_LEGACY_DIR, { force: true, recursive: true });
-        await Promise.all([tsc(), npmInstall()]);
-    }
-    catch (error)
-    {
-        console.error(error);
-        process.exitCode = 1;
-    }
-}
-)();
+await rm(NODE_LEGACY_DIR, { force: true, recursive: true });
+await Promise.all([tsc(), npmInstall()]);

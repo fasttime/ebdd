@@ -71,7 +71,7 @@ declare global
 
 enum Brand
 {
-    NONE, XIT, XDESCRIBE, SKIP_OR_ONLY
+    NONE, XIT, XDESCRIBE, SKIP_OR_ONLY,
 }
 
 export interface EBDDGlobals
@@ -96,7 +96,7 @@ export interface EBDDGlobals
 
 enum Mode
 {
-    NORMAL, ONLY, SKIP
+    NORMAL, ONLY, SKIP,
 }
 
 export type ParamCollection<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;

@@ -27,22 +27,33 @@
   },
   "scripts": {
     "build": "npm install && gulp",
-    "legacy-build": "node dev/prepare-legacy-test && npm run legacy-test",
-    "legacy-test": "node -- test/node-legacy/node_modules/mocha/bin/mocha --check-leaks --require=./test/node-legacy-adapter test/node-legacy/test/spec/**/*.spec.js",
+    "clean": "node dev/clean",
+    "coverage": "nyc --include=src --reporter=html --reporter=text-summary npm test",
+    "legacy-test": "node -- test/node-legacy/node_modules/mocha/bin/mocha --check-leaks --require=test/node-legacy-adapter test/node-legacy/test/spec/**/*.spec.js",
+    "lint": "node dev/lint",
+    "make": "npm run make-lib",
+    "make-browser-spec-runner": "node dev/make-browser-spec-runner",
+    "make-lib": "node dev/make-lib",
     "prepare": "node dev/patch-sinon",
-    "test": "TS_NODE_PROJECT=test/tsconfig.json mocha --check-leaks --require=ts-node/register test/spec/**/*.spec.ts"
+    "prepare-legacy-test": "node dev/prepare-legacy-test",
+    "test": "mocha --check-leaks --require=ts-node/register test/spec/**/*.spec.ts"
+
   },
   "devDependencies": {
+    "@babel/eslint-parser": "latest",
+    "@babel/plugin-syntax-top-level-await": "latest",
     "@fasttime/lint": "latest",
     "@rollup/plugin-node-resolve": "latest",
     "@types/mocha": "latest",
     "@types/sinon": "latest",
+    "fast-glob": "latest",
     "gulp": "latest",
     "gulp-ignore": "latest",
     "gulp-rename": "latest",
     "gulp-typescript": "5",
     "merge-stream": "latest",
     "mocha": "latest",
+    "mocha_3": "npm:mocha@3",
     "mocha-bar": "latest",
     "nyc": "latest",
     "postrequire": "latest",
@@ -50,12 +61,13 @@
     "rollup-plugin-cleanup": "latest",
     "rollup-plugin-node-builtins": "latest",
     "rollup-plugin-node-globals": "latest",
-    "sinon": "latest",
+    "sinon": "9",
     "ts-node": "latest",
     "tslib": "2",
     "typescript": "4.3"
   },
   "peerDependencies": {
     "mocha": ">=3.0.0"
-  }
+  },
+  "type": "module"
 }

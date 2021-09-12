@@ -12,7 +12,7 @@ import type { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub } from 'sinon';
 describe
 (
     'EBDD suite functions',
-    () =>
+    (): void =>
     {
         function assertBDDDescribe
         (ebddDescribeAny: UnparameterizedSuiteFunction, bddDescribeAny: SinonStub): void
@@ -38,7 +38,7 @@ describe
         void
         {
             const suiteCallback =
-            (letter: string): void =>
+            (letter: string): void => // eslint-disable-line @typescript-eslint/no-unused-vars
             { };
 
             assertBDDDescribesWithParams
@@ -47,7 +47,7 @@ describe
                 bddDescribeAnyList,
                 '"#" is good',
                 suiteCallback,
-                ([letter]: readonly unknown[]) => `"${letter}" is good`,
+                ([letter]: readonly unknown[]): string => `"${letter}" is good`,
                 expectedParamsList,
             );
         }
@@ -72,7 +72,7 @@ describe
             // describe callback order
             (bddDescribeAnyCalls as unknown as SinonSpy[]).reduce
             (
-                (previousSpy: SinonSpy, currentSpy: SinonSpy) =>
+                (previousSpy: SinonSpy, currentSpy: SinonSpy): SinonSpy =>
                 {
                     ok(currentSpy.calledImmediatelyAfter(previousSpy));
                     return currentSpy;
@@ -82,7 +82,7 @@ describe
             // describe callback counts
             uniqueBDDDescribeAny.forEach
             (
-                (bddDescribeAny: CallCountingStub) =>
+                (bddDescribeAny: CallCountingStub): void =>
                 {
                     strictEqual(bddDescribeAny.callCount, bddDescribeAny.nextCallIndex);
                 },
@@ -91,7 +91,7 @@ describe
             // Suite titles
             bddDescribeAnyCalls.forEach
             (
-                ({ args: [actualTitle] }: SinonSpyCall, index: number) =>
+                ({ args: [actualTitle] }: SinonSpyCall, index: number): void =>
                 {
                     const expectedParams = expectedParamsList[index];
                     const expectedTitle = getExpectedTitle(expectedParams);
@@ -102,7 +102,7 @@ describe
             // Suite callback functions calls
             bddDescribeAnyCalls.forEach
             (
-                ({ args: [, actualSuiteCallback] }: SinonSpyCall, index: number) =>
+                ({ args: [, actualSuiteCallback] }: SinonSpyCall, index: number): void =>
                 {
                     suiteCallbackSpy.resetHistory();
                     const expectedThis = { };
@@ -180,7 +180,7 @@ describe
 
         beforeEach
         (
-            () =>
+            (): void =>
             {
                 interface BDDDescribe extends SinonStub
                 {
@@ -220,11 +220,11 @@ describe
             },
         );
 
-        afterEach(() => sandbox.restore());
+        afterEach((): void => sandbox.restore());
 
         after
         (
-            () =>
+            (): void =>
             {
                 ({ bddDescribe, bddDescribeOnly, bddDescribeSkip, ebdd } = clear());
             },
@@ -233,43 +233,43 @@ describe
         it
         (
             'describe',
-            () => assertBDDDescribe(ebdd.describe, bddDescribe),
+            (): void => assertBDDDescribe(ebdd.describe, bddDescribe),
         );
 
         it
         (
             'describe.only',
-            () => assertBDDDescribe(ebdd.describe.only, bddDescribeOnly),
+            (): void => assertBDDDescribe(ebdd.describe.only, bddDescribeOnly),
         );
 
         it
         (
             'describe.only.only',
-            () => throws(() => void ebdd.describe.only.only, Error),
+            (): void => throws((): void => void ebdd.describe.only.only, Error),
         );
 
         it
         (
             'describe.only.skip',
-            () => throws(() => void ebdd.describe.only.skip, Error),
+            (): void => throws((): void => void ebdd.describe.only.skip, Error),
         );
 
         it
         (
             'describe.only.when(true)',
-            () => assertBDDDescribe(ebdd.describe.only.when(true), bddDescribeOnly),
+            (): void => assertBDDDescribe(ebdd.describe.only.when(true), bddDescribeOnly),
         );
 
         it
         (
             'describe.only.when(false)',
-            () => assertBDDDescribe(ebdd.describe.only.when(false), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.only.when(false), bddDescribeSkip),
         );
 
         it
         (
             'describe.only.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.only.per(getTestParams());
                 const bddDescribeAnyList =
@@ -288,37 +288,37 @@ describe
         it
         (
             'describe.skip',
-            () => assertBDDDescribe(ebdd.describe.skip, bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.skip, bddDescribeSkip),
         );
 
         it
         (
             'describe.skip.only',
-            () => throws(() => void ebdd.describe.skip.only, Error),
+            (): void => throws((): void => void ebdd.describe.skip.only, Error),
         );
 
         it
         (
             'describe.skip.skip',
-            () => throws(() => void ebdd.describe.skip.skip, Error),
+            (): void => throws((): void => void ebdd.describe.skip.skip, Error),
         );
 
         it
         (
             'describe.skip.when(true)',
-            () => assertBDDDescribe(ebdd.describe.skip.when(true), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.skip.when(true), bddDescribeSkip),
         );
 
         it
         (
             'describe.skip.when(false)',
-            () => assertBDDDescribe(ebdd.describe.skip.when(false), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.skip.when(false), bddDescribeSkip),
         );
 
         it
         (
             'describe.skip.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.skip.per(getTestParams());
                 const bddDescribeAnyList =
@@ -337,37 +337,37 @@ describe
         it
         (
             'describe.when(true)',
-            () => assertBDDDescribe(ebdd.describe.when(true), bddDescribe),
+            (): void => assertBDDDescribe(ebdd.describe.when(true), bddDescribe),
         );
 
         it
         (
             'describe.when(true).only',
-            () => assertBDDDescribe(ebdd.describe.when(true).only, bddDescribeOnly),
+            (): void => assertBDDDescribe(ebdd.describe.when(true).only, bddDescribeOnly),
         );
 
         it
         (
             'describe.when(true).skip',
-            () => assertBDDDescribe(ebdd.describe.when(true).skip, bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.when(true).skip, bddDescribeSkip),
         );
 
         it
         (
             'describe.when(true).when(true)',
-            () => assertBDDDescribe(ebdd.describe.when(true).when(true), bddDescribe),
+            (): void => assertBDDDescribe(ebdd.describe.when(true).when(true), bddDescribe),
         );
 
         it
         (
             'describe.when(true).when(false)',
-            () => assertBDDDescribe(ebdd.describe.when(true).when(false), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.when(true).when(false), bddDescribeSkip),
         );
 
         it
         (
             'describe.when(true).per([...])',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.when(true).per(getTestParams());
                 const bddDescribeAnyList =
@@ -380,37 +380,37 @@ describe
         it
         (
             'describe.when(false)',
-            () => assertBDDDescribe(ebdd.describe.when(false), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.when(false), bddDescribeSkip),
         );
 
         it
         (
             'describe.when(false).only',
-            () => assertBDDDescribe(ebdd.describe.when(false).only, bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.when(false).only, bddDescribeSkip),
         );
 
         it
         (
             'describe.when(false).skip',
-            () => assertBDDDescribe(ebdd.describe.when(false).skip, bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.when(false).skip, bddDescribeSkip),
         );
 
         it
         (
             'describe.when(false).when(true)',
-            () => assertBDDDescribe(ebdd.describe.when(false).when(true), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.when(false).when(true), bddDescribeSkip),
         );
 
         it
         (
             'describe.when(false).when(false)',
-            () => assertBDDDescribe(ebdd.describe.when(false).when(false), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.describe.when(false).when(false), bddDescribeSkip),
         );
 
         it
         (
             'describe.when(false).per([...])',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.when(false).per(getTestParams());
                 const bddDescribeAnyList =
@@ -429,7 +429,7 @@ describe
         it
         (
             'describe.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams());
                 const bddDescribeAnyList =
@@ -448,10 +448,11 @@ describe
         it
         (
             'describe.per([...], ...)',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny =
-                ebdd.describe.per(getTestParams(), (letter: string) => letter.toLowerCase());
+                ebdd.describe.per
+                (getTestParams(), (letter: string): string => letter.toLowerCase());
                 const bddDescribeAnyList =
                 [
                     bddDescribe,
@@ -469,7 +470,7 @@ describe
         it
         (
             'describe.per([...]).only',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).only;
                 const bddDescribeAnyList =
@@ -488,7 +489,7 @@ describe
         it
         (
             'describe.per([...]).skip',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).skip;
                 const bddDescribeAnyList =
@@ -507,7 +508,7 @@ describe
         it
         (
             'describe.per([...]).when(true)',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).when(true);
                 const bddDescribeAnyList =
@@ -520,7 +521,7 @@ describe
         it
         (
             'describe.per([...]).when(false)',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.describe.per(getTestParams()).when(false);
                 const bddDescribeAnyList =
@@ -539,7 +540,7 @@ describe
         it
         (
             'describe.per([...]).per([...])',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny =
                 ebdd.describe
@@ -573,6 +574,7 @@ describe
                 ];
 
                 const suiteCallback =
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 (count: number, food: string): void =>
                 { };
 
@@ -582,7 +584,7 @@ describe
                     bddDescribeAnyList,
                     '#1 #2',
                     suiteCallback,
-                    ([count, food]: readonly unknown[]) => `${count} ${food}`,
+                    ([count, food]: readonly unknown[]): string => `${count} ${food}`,
                     expectedParamsList,
                 );
             },
@@ -591,43 +593,43 @@ describe
         it
         (
             'context',
-            () => strictEqual(ebdd.context, ebdd.describe),
+            (): void => strictEqual(ebdd.context, ebdd.describe),
         );
 
         it
         (
             'xdescribe',
-            () => assertBDDDescribe(ebdd.xdescribe, bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.xdescribe, bddDescribeSkip),
         );
 
         it
         (
             'xdescribe.only',
-            () => throws(() => void ebdd.xdescribe.only, Error),
+            (): void => throws((): void => void ebdd.xdescribe.only, Error),
         );
 
         it
         (
             'xdescribe.skip',
-            () => throws(() => void ebdd.xdescribe.skip, Error),
+            (): void => throws((): void => void ebdd.xdescribe.skip, Error),
         );
 
         it
         (
             'xdescribe.when(true)',
-            () => assertBDDDescribe(ebdd.xdescribe.when(true), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.xdescribe.when(true), bddDescribeSkip),
         );
 
         it
         (
             'xdescribe.when(false)',
-            () => assertBDDDescribe(ebdd.xdescribe.when(false), bddDescribeSkip),
+            (): void => assertBDDDescribe(ebdd.xdescribe.when(false), bddDescribeSkip),
         );
 
         it
         (
             'xdescribe.per([...])',
-            () =>
+            (): void =>
             {
                 const ebddDescribeAny = ebdd.xdescribe.per(getTestParams());
                 const bddDescribeAnyList =
@@ -646,32 +648,32 @@ describe
         it
         (
             'xcontext',
-            () => strictEqual(ebdd.xcontext, ebdd.xdescribe),
+            (): void => strictEqual(ebdd.xcontext, ebdd.xdescribe),
         );
 
         it
         (
             'unparameterized describe with undefined title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.describe(undefined, fn), TypeError);
+                throws((): unknown => ebdd.describe(undefined, fn), TypeError);
             },
         );
 
         it
         (
             'unparameterized describe with invalid title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.describe({ }, fn), TypeError);
+                throws((): unknown => ebdd.describe({ }, fn), TypeError);
             },
         );
 
@@ -679,29 +681,29 @@ describe
         (
             'unparameterized describe with undefined callback function',
             // @ts-expect-error
-            () => throws(() => ebdd.describe('suite', undefined), TypeError),
+            (): void => throws((): unknown => ebdd.describe('suite', undefined), TypeError),
         );
 
         it
         (
             'unparameterized describe with invalid callback function',
             // @ts-expect-error
-            () => throws(() => ebdd.describe('suite', { }), TypeError),
+            (): void => throws((): unknown => ebdd.describe('suite', { }), TypeError),
         );
 
         it
         (
             'unparameterized describe with callback function accepting wrong number of arguments',
-            () =>
+            (): void =>
             {
                 const fn =
-                (arg0: never): void =>
+                (arg0: never): void => // eslint-disable-line @typescript-eslint/no-unused-vars
                 { };
                 throws
                 (
                     // @ts-expect-error
-                    () => ebdd.describe('suite', fn),
-                    (error: unknown) =>
+                    (): unknown => ebdd.describe('suite', fn),
+                    (error: unknown): boolean =>
                     error instanceof RangeError && /\b0 parameters\b/.test(error.message),
                 );
             },
@@ -710,56 +712,57 @@ describe
         it
         (
             'parameterized describe with undefined title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.describe.per([0])(undefined, fn), TypeError);
+                throws((): unknown => ebdd.describe.per([0])(undefined, fn), TypeError);
             },
         );
 
         it
         (
             'parameterized describe with invalid title',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 // @ts-expect-error
-                throws(() => ebdd.describe.per([0])({ }, fn), TypeError);
+                throws((): unknown => ebdd.describe.per([0])({ }, fn), TypeError);
             },
         );
 
         it
         (
             'parameterized describe with undefined callback function',
+            (): void =>
             // @ts-expect-error
-            () => throws(() => ebdd.describe.per([0])('suite', undefined), TypeError),
+            throws((): unknown => ebdd.describe.per([0])('suite', undefined), TypeError),
         );
 
         it
         (
             'parameterized describe with invalid callback function',
             // @ts-expect-error
-            () => throws(() => ebdd.describe.per([0])('suite', { }), TypeError),
+            (): void => throws((): unknown => ebdd.describe.per([0])('suite', { }), TypeError),
         );
 
         it
         (
             'simply parameterized describe with callback function accepting wrong number of ' +
             'arguments',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 throws
                 (
-                    () => ebdd.describe.per([0])('suite', fn),
-                    (error: unknown) =>
+                    (): unknown => ebdd.describe.per([0])('suite', fn),
+                    (error: unknown): boolean =>
                     error instanceof RangeError && /\b1 parameter\b/.test(error.message),
                 );
             },
@@ -769,15 +772,15 @@ describe
         (
             'multiparameterized describe with callback function accepting wrong number of ' +
             'arguments',
-            () =>
+            (): void =>
             {
                 const fn =
                 (): void =>
                 { };
                 throws
                 (
-                    () => ebdd.describe.per([0]).per([1])('suite', fn),
-                    (error: unknown) =>
+                    (): unknown => ebdd.describe.per([0]).per([1])('suite', fn),
+                    (error: unknown): boolean =>
                     error instanceof RangeError && /\b2 parameters\b/.test(error.message),
                 );
             },
@@ -787,40 +790,40 @@ describe
         (
             'per with undefined params argument',
             // @ts-expect-error
-            () => throws(() => ebdd.describe.per(undefined), TypeError),
+            (): void => throws((): unknown => ebdd.describe.per(undefined), TypeError),
         );
 
         it
         (
             'per with null params argument',
             // @ts-expect-error
-            () => throws(() => ebdd.describe.per(null), TypeError),
+            (): void => throws((): unknown => ebdd.describe.per(null), TypeError),
         );
 
         it
         (
             'per with empty array-like params argument',
-            () => throws(() => ebdd.describe.per(''), TypeError),
+            (): void => throws((): unknown => ebdd.describe.per(''), TypeError),
         );
 
         it
         (
             'per with invalid parameter',
-            () =>
+            (): void =>
             {
                 // @ts-expect-error
                 const paramInfo = new ParamInfo(42, 'foo');
-                throws(() => ebdd.describe.per([paramInfo]), TypeError);
+                throws((): unknown => ebdd.describe.per([paramInfo]), TypeError);
             },
         );
 
         it
         (
             'per with invalid paramMapper argument',
-            () =>
+            (): void =>
             {
                 // @ts-expect-error
-                throws(() => ebdd.describe.per([1], 'WRONG'), TypeError);
+                throws((): unknown => ebdd.describe.per([1], 'WRONG'), TypeError);
             },
         );
     },

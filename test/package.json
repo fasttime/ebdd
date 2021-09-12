@@ -1,0 +1,8 @@
+{
+    "files": [],
+    "devDependencies": {
+        "mocha": "*",
+        "postrequire": "*",
+        "sinon": "*"
+    }
+}
