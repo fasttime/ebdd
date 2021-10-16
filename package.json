@@ -40,8 +40,6 @@
 
   },
   "devDependencies": {
-    "@babel/eslint-parser": "latest",
-    "@babel/plugin-syntax-top-level-await": "latest",
     "@fasttime/lint": "latest",
     "@rollup/plugin-node-resolve": "latest",
     "@types/mocha": "latest",
