@@ -485,6 +485,41 @@ describe
 
         it
         (
+            'it.per([...], only)',
+            (): void =>
+            {
+                const ebddItAny =
+                ebdd.it.per
+                (
+                    getTestParams(),
+                    (letter: string): ParamInfo<number> => ebdd.only(letter.charCodeAt(0)),
+                );
+                const bddCallDataList = [bddItOnly, bddItOnly, bddItSkip, bddItOnly, bddItSkip];
+
+                assertBDDIts(ebddItAny, bddCallDataList, [[65], [66], [67], [68], [69]]);
+            },
+        );
+
+        it
+        (
+            'it.per([...], skip)',
+            (): void =>
+            {
+                const ebddItAny =
+                ebdd.it.per
+                (
+                    getTestParams(),
+                    (letter: string): ParamOrParamInfo<string> =>
+                    letter.charCodeAt(0) & 0b1 ? `${letter}${letter}` : ebdd.skip(letter),
+                );
+                const bddCallDataList = [bddIt, bddItSkip, bddItSkip, bddItSkip, bddItSkip];
+
+                assertBDDIts(ebddItAny, bddCallDataList, [['AA'], ['B'], ['CC'], ['D'], ['EE']]);
+            },
+        );
+
+        it
+        (
             'it.per([...]).only',
             (): void =>
             {

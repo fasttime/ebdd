@@ -37,7 +37,6 @@
     "prepare": "node dev/patch-sinon",
     "prepare-legacy-test": "node dev/prepare-legacy-test",
     "test": "mocha --check-leaks --require=ts-node/register test/spec/**/*.spec.ts"
-
   },
   "devDependencies": {
     "@fasttime/lint": "latest",
@@ -62,10 +61,11 @@
     "sinon": "9",
     "ts-node": "latest",
     "tslib": "2",
-    "typescript": "4.3"
+    "typescript": "4.5"
   },
   "peerDependencies": {
-    "mocha": ">=3.0.0"
+    "@types/mocha": ">=7",
+    "mocha": ">=3"
   },
   "type": "module"
 }

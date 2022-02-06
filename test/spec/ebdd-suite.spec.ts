@@ -469,6 +469,57 @@ describe
 
         it
         (
+            'describe.per([...], only)',
+            (): void =>
+            {
+                const ebddDescribeAny =
+                ebdd.describe.per
+                (
+                    getTestParams(),
+                    (letter: string): ParamInfo<string> => ebdd.only(letter.toLowerCase()),
+                );
+                const bddDescribeAnyList =
+                [
+                    bddDescribeOnly,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                    bddDescribeOnly,
+                    bddDescribeSkip,
+                ];
+
+                assertBDDDescribes
+                (ebddDescribeAny, bddDescribeAnyList, [['a'], ['b'], ['c'], ['d'], ['e']]);
+            },
+        );
+
+        it
+        (
+            'describe.per([...], skip)',
+            (): void =>
+            {
+                const ebddDescribeAny =
+                ebdd.describe.per
+                (
+                    getTestParams(),
+                    (letter: string): ParamOrParamInfo<string> =>
+                    letter.charCodeAt(0) & 0b1 ? letter.toLowerCase() : ebdd.skip(letter),
+                );
+                const bddDescribeAnyList =
+                [
+                    bddDescribe,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                    bddDescribeSkip,
+                ];
+
+                assertBDDDescribes
+                (ebddDescribeAny, bddDescribeAnyList, [['a'], ['B'], ['c'], ['D'], ['e']]);
+            },
+        );
+
+        it
+        (
             'describe.per([...]).only',
             (): void =>
             {

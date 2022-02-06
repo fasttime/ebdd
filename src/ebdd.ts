@@ -103,7 +103,8 @@ export type ParamCollection<ParamType> = ArrayLike<ParamOrParamInfo<ParamType>>;
 
 type ParamList<ParamListType extends readonly unknown[]> = ParamListType & { readonly mode: Mode; };
 
-export type ParamMapper<InParamType, OutParamType> = (param: InParamType) => OutParamType;
+export type ParamMapper<InParamType, OutParamType> =
+(param: InParamType) => ParamOrParamInfo<OutParamType>;
 
 export type ParamOrParamInfo<ParamType> = ParamType | ParamInfo<ParamType>;
 
@@ -531,28 +532,14 @@ readonly ParamList<[OutParamType]>[]
             params,
             (paramOrParamInfo: ParamOrParamInfo<InParamType>): ParamList<[OutParamType]> =>
             {
-                let inParam: InParamType;
-                let mode: Mode;
-                if (paramOrParamInfo instanceof ParamInfo)
-                {
-                    inParam = paramOrParamInfo.param;
-                    const paramInfoMode = paramOrParamInfo.mode;
-                    if (typeof paramInfoMode !== 'number' || !(paramInfoMode in Mode))
-                    {
-                        const message = 'Invalid parameter.';
-                        throw TypeError(message);
-                    }
-                    mode = maxMode(paramInfoMode, baseMode);
-                }
-                else
-                {
-                    inParam = paramOrParamInfo;
-                    mode = baseMode;
-                }
-                const outParam =
+                const { param: inParam, mode: inMode } =
+                getParamAndMode(paramOrParamInfo, baseMode);
+                const outParamOrParamInfo =
                 paramMapper ? paramMapper(inParam) : inParam as unknown as OutParamType;
+                const { param: outParam, mode: outMode } =
+                getParamAndMode(outParamOrParamInfo, inMode);
                 const paramList: [OutParamType] = [outParam];
-                makeParamList(paramList, mode);
+                makeParamList(paramList, outMode);
                 return paramList;
             },
         );
@@ -566,6 +553,33 @@ readonly ParamList<[OutParamType]>[]
 export function ebdd(suite: Suite): void
 {
     suite.on('pre-require', createEBDDInterface);
+}
+
+function getParamAndMode
+<ParamType>
+(paramOrParamInfo: ParamOrParamInfo<ParamType>, baseMode: Mode):
+{ readonly param: ParamType; readonly mode: Mode; }
+{
+    let param: ParamType;
+    let mode: Mode;
+    if (paramOrParamInfo instanceof ParamInfo)
+    {
+        ({ param } = paramOrParamInfo);
+        const paramInfoMode = paramOrParamInfo.mode;
+        if (typeof paramInfoMode !== 'number' || !(paramInfoMode in Mode))
+        {
+            const message = 'Invalid parameter.';
+            throw TypeError(message);
+        }
+        mode = maxMode(paramInfoMode, baseMode);
+    }
+    else
+    {
+        param = paramOrParamInfo;
+        mode = baseMode;
+    }
+    const paramAndMode = { param, mode };
+    return paramAndMode;
 }
 
 function makeParamList

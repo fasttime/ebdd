@@ -17,7 +17,11 @@ function endOf(childProcess)
 async function npmInstall()
 {
     await mkdir(NODE_LEGACY_DIR, { recursive: true });
-    const pkg = { dependencies: { mocha: '3', postrequire: '*', sinon: '2' }, private: true };
+    const pkg =
+    {
+        dependencies: { minimatch: '3.0.4', mocha: '3', postrequire: '*', sinon: '2' },
+        private: true,
+    };
     const contents = JSON.stringify(pkg, null, 2) + EOL;
     const path = join(NODE_LEGACY_DIR, 'package.json');
     await writeFile(path, contents);
