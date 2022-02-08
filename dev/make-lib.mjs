@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-import { makeLib } from './impl.js';
+import { makeLib } from './impl.mjs';
 
 await makeLib();

@@ -1,4 +1,4 @@
-import { ebdd } from './ebdd';
+import ebdd from './ebdd';
 
 function defineMocha(attributes: PropertyDescriptor): void
 {

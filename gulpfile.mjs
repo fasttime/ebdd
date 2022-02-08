@@ -1,4 +1,4 @@
-import { clean, lint, makeBrowserSpecRunner, makeLib }  from './dev/impl.js';
+import { clean, lint, makeBrowserSpecRunner, makeLib }  from './dev/impl.mjs';
 import { fork }                                         from 'child_process';
 import gulp                                             from 'gulp';
 import { createRequire }                                from 'module';

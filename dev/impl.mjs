@@ -12,31 +12,6 @@ async function bundle(inputOptions, outputOptions)
     return code;
 }
 
-async function bundleLib(pkgPath)
-{
-    const { default: rollupPluginCleanup } = await import('rollup-plugin-cleanup');
-
-    const pkgConfigPath = join(pkgPath, 'package.json');
-    const require = createRequire(pkgConfigPath);
-    const { homepage, name } = require(pkgConfigPath);
-    const inputPath = join(pkgPath, '.tmp-out/ebdd.js');
-    const inputOptions =
-    {
-        external: ['tslib'],
-        input: inputPath,
-        plugins: [rollupPluginCleanup({ comments: /^(?!\/\s*(?:@ts-|eslint-))/ })],
-    };
-    const outputPath = join(pkgPath, 'ebdd.js');
-    const outputOptions =
-    {
-        banner: `// ${name} – ${homepage}\n`,
-        file: outputPath,
-        footer: `\n// End of module ${name}`,
-        format: 'esm',
-    };
-    await bundle(inputOptions, outputOptions);
-}
-
 export async function clean()
 {
     const paths =
@@ -51,24 +26,6 @@ export async function clean()
     ];
     const options = { force: true, recursive: true };
     await Promise.all(paths.map(path => rm(path, options)));
-}
-
-async function compileLib(pkgPath, dTsFilter)
-{
-    const { default: ts } = await import('typescript');
-
-    const declarationDir = join(pkgPath, 'lib');
-    const newOptions =
-    {
-        declaration:    true,
-        declarationDir,
-        importHelpers:  true,
-        outDir:         join(pkgPath, '.tmp-out'),
-        rootDir:        join(pkgPath, 'src'),
-        types:          ['node'],
-    };
-    const writeFile = getWriteFile(ts.sys.writeFile, declarationDir, dTsFilter);
-    await compileTS(pkgPath, 'src/**/*.ts', newOptions, writeFile);
 }
 
 async function compileTS(pkgPath, source, newOptions, writeFile)
@@ -151,39 +108,74 @@ export async function lint()
 
 export async function makeBrowserSpecRunner()
 {
-    const [{ default: rollupPluginNodeBuiltins }, { default: rollupPluginNodeGlobals }] =
-    await
-    Promise.all([import('rollup-plugin-node-builtins'), import('rollup-plugin-node-globals')]);
-
-    const pkgURL = new URL('..', import.meta.url);
-    const pkgPath = fileURLToPath(pkgURL);
+    async function compile()
     {
         const outDir = join(pkgPath, '.tmp-out');
         const rootDir = join(pkgPath, '.');
         const newOptions = { outDir, rootDir };
         await compileTS(pkgPath, '{src,test}/**/*.ts', newOptions);
     }
+
+    const pkgURL = new URL('..', import.meta.url);
+    const pkgPath = fileURLToPath(pkgURL);
+
+    const [{ default: rollupPluginNodeBuiltins }, { default: rollupPluginNodeGlobals }] =
+    await
+    Promise.all
+    ([import('rollup-plugin-node-builtins'), import('rollup-plugin-node-globals'), compile()]);
+
+    const inputPath = join(pkgPath, '.tmp-out/test/browser-spec-runner.js');
+    const onwarn =
+    warning =>
     {
-        const inputPath = join(pkgPath, '.tmp-out/test/browser-spec-runner.js');
-        const onwarn =
-        warning =>
-        {
-            if (warning.code !== 'THIS_IS_UNDEFINED')
-                console.error(warning.message);
-        };
-        const plugins = [rollupPluginNodeBuiltins(), rollupPluginNodeGlobals({ buffer: false })];
-        const inputOptions = { external: ['mocha', 'sinon'], input: inputPath, onwarn, plugins };
-        const outputPath = join(pkgPath, 'test/browser-spec-runner.js');
-        const globals = { mocha: 'Mocha', sinon: 'sinon' };
-        const outputOptions = { esModule: false, file: outputPath, format: 'iife', globals };
-        await bundle(inputOptions, outputOptions);
-    }
+        if (warning.code !== 'THIS_IS_UNDEFINED')
+            console.error(warning.message);
+    };
+    const plugins = [rollupPluginNodeBuiltins(), rollupPluginNodeGlobals({ buffer: false })];
+    const inputOptions = { external: ['mocha', 'sinon'], input: inputPath, onwarn, plugins };
+    const outputPath = join(pkgPath, 'test/browser-spec-runner.js');
+    const globals = { mocha: 'Mocha', sinon: 'sinon' };
+    const outputOptions = { file: outputPath, format: 'iife', globals };
+    await bundle(inputOptions, outputOptions);
 }
 
 export async function makeLib()
 {
+    async function compile()
+    {
+        const { default: ts } = await import('typescript');
+
+        const declarationDir = join(pkgPath, 'lib');
+        const newOptions =
+        {
+            declaration:    true,
+            declarationDir,
+            importHelpers:  true,
+            outDir:         join(pkgPath, '.tmp-out'),
+            rootDir:        join(pkgPath, 'src'),
+            types:          ['node'],
+        };
+        const writeFile =
+        getWriteFile(ts.sys.writeFile, declarationDir, ['ebdd.d.ts', 'extensible-array.d.ts']);
+        await compileTS(pkgPath, 'src/**/*.ts', newOptions, writeFile);
+    }
+
     const pkgURL = new URL('..', import.meta.url);
     const pkgPath = fileURLToPath(pkgURL);
-    await compileLib(pkgPath, ['ebdd.d.ts', 'extensible-array.d.ts']);
-    await bundleLib(pkgPath);
+
+    const [{ nodeResolve }, { default: rollupPluginCleanup }] =
+    await
+    Promise.all
+    ([import('@rollup/plugin-node-resolve'), import('rollup-plugin-cleanup'), compile()]);
+
+    const pkgConfigPath = join(pkgPath, 'package.json');
+    const require = createRequire(pkgConfigPath);
+    const { homepage, name } = require(pkgConfigPath);
+    const inputPath = join(pkgPath, '.tmp-out/main.js');
+    const inputOptions =
+    { input: inputPath, plugins: [rollupPluginCleanup({ comments: [] }), nodeResolve()] };
+    const outputPath = join(pkgPath, 'ebdd.js');
+    const outputOptions =
+    { banner: `// ${name} – ${homepage}\n`, file: outputPath, format: 'iife' };
+    await bundle(inputOptions, outputOptions);
 }

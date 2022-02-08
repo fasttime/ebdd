@@ -1,4 +1,4 @@
-import { ebdd }                     from '../../src/ebdd';
+import ebdd                         from '../../src/ebdd';
 import { strictEqual, throws }      from 'assert';
 import postrequire                  from 'postrequire';
 import type { PostrequireStubs }    from 'postrequire';

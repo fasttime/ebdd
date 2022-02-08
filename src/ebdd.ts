@@ -179,7 +179,9 @@ extends ParameterizableFunction<UnparameterizedTestFunction>
     ParameterizedTestFunction<[OutParamType]>;
 }
 
-export class ParamInfo<ParamType>
+export type { ParamInfo, SpecItemArray };
+
+class ParamInfo<ParamType>
 {
     public constructor(public readonly param: ParamType, public readonly mode: Mode)
     {
@@ -192,7 +194,7 @@ export class ParamInfo<ParamType>
     }
 }
 
-export class SpecItemArray<SpecItemType extends Suite | Test> extends ExtensibleArray<SpecItemType>
+class SpecItemArray<SpecItemType extends Suite | Test> extends ExtensibleArray<SpecItemType>
 {
     public parent: Suite | undefined;
     public timeout(): number;
@@ -550,7 +552,7 @@ readonly ParamList<[OutParamType]>[]
     throw TypeError(message);
 }
 
-export function ebdd(suite: Suite): void
+export default function ebdd(suite: Suite): void
 {
     suite.on('pre-require', createEBDDInterface);
 }
@@ -726,8 +728,8 @@ function validateSuiteCallback(fn: Function, expectedLength: number): void
     if (length !== expectedLength)
     {
         const message =
-        `The suite callback function should accept ${countParameters(expectedLength)}, but it ` +
-        `accepts ${length}.`;
+        `The suite callback function should accept ${countParameters(expectedLength)
+        }, but it accepts ${length}.`;
         throw RangeError(message);
     }
 }
@@ -743,8 +745,8 @@ function validateTestCallback(fn: Function, expectedMinLength: number): void
     if (length !== expectedMinLength && length !== expectedMinLength + 1)
     {
         const message =
-        `The test callback function should accept ${countParameters(expectedMinLength)}, or ` +
-        `${expectedMinLength + 1} if it uses a done callback, but it accepts ${length}.`;
+        `The test callback function should accept ${countParameters(expectedMinLength)}, or ${
+        expectedMinLength + 1} if it uses a done callback, but it accepts ${length}.`;
         throw RangeError(message);
     }
 }

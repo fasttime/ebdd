@@ -27,15 +27,15 @@
   },
   "scripts": {
     "build": "npm install && gulp",
-    "clean": "node dev/clean",
+    "clean": "node dev/clean.mjs",
     "coverage": "nyc --include=src --reporter=html --reporter=text-summary npm test",
     "legacy-test": "node -- test/node-legacy/node_modules/mocha/bin/mocha --check-leaks --require=test/node-legacy-adapter test/node-legacy/test/spec/**/*.spec.js",
-    "lint": "node dev/lint",
+    "lint": "node dev/lint.mjs",
     "make": "npm run make-lib",
-    "make-browser-spec-runner": "node dev/make-browser-spec-runner",
-    "make-lib": "node dev/make-lib",
-    "prepare": "node dev/patch-sinon",
-    "prepare-legacy-test": "node dev/prepare-legacy-test",
+    "make-browser-spec-runner": "node dev/make-browser-spec-runner.mjs",
+    "make-lib": "node dev/make-lib.mjs",
+    "prepare": "node dev/patch-sinon.mjs",
+    "prepare-legacy-test": "node dev/prepare-legacy-test.mjs",
     "test": "mocha --check-leaks --require=ts-node/register test/spec/**/*.spec.ts"
   },
   "devDependencies": {
@@ -66,6 +66,5 @@
   "peerDependencies": {
     "@types/mocha": ">=7",
     "mocha": ">=3"
-  },
-  "type": "module"
+  }
 }

@@ -114,9 +114,9 @@ function createChunks(titlePattern: string, paramCount: number): readonly Chunk[
                     break;
                 }
                 const message =
-                `The placeholder ${rawPlaceholder} is ambiguous because there are ${paramCount} ` +
-                `parameters. Use ${rankSpecification} instead of # to refer to a specific ` +
-                'parameter.';
+                `The placeholder ${rawPlaceholder} is ambiguous because there are ${paramCount
+                } parameters. Use ${rankSpecification
+                } instead of # to refer to a specific parameter.`;
                 throw Error(message);
             }
         }

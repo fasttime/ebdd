@@ -1,5 +1,5 @@
-import { ParamInfo }                                                from '../../src/ebdd';
-import type { ParamOrParamInfo, ParameterizedTestFunction, UnparameterizedTestFunction }
+import type
+{ ParamInfo, ParamOrParamInfo, ParameterizedTestFunction, UnparameterizedTestFunction }
 from '../../src/ebdd';
 import { clear, isArrayBased, loadEBDD }                            from './utils';
 import type { CallCountingStub }                                    from './utils';
@@ -832,8 +832,9 @@ describe
             'per with invalid parameter',
             (): void =>
             {
+                const paramInfo = ebdd.when(true, 42);
                 // @ts-expect-error
-                const paramInfo = new ParamInfo(42, 'foo');
+                paramInfo.mode = 'foo';
                 throws((): unknown => ebdd.it.per([paramInfo]), TypeError);
             },
         );

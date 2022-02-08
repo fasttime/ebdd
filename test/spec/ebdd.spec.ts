@@ -1,4 +1,4 @@
-import { ebdd }                         from '../../src/ebdd';
+import ebdd                             from '../../src/ebdd';
 import { clear }                        from './utils';
 import { ok, strictEqual }              from 'assert';
 import Mocha, { Suite, interfaces }     from 'mocha';
