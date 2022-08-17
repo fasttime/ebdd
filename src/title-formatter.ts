@@ -27,7 +27,7 @@ class TitleFormatter
                 {
                     if (value === undefined || value === null)
                         return undefined;
-                    value = (value as { [key: string]: unknown; })[propName];
+                    value = (value as Record<string, unknown>)[propName];
                 }
                 return value;
             }

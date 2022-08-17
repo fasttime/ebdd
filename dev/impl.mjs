@@ -89,17 +89,18 @@ export async function lint()
     (
         {
             src: ['src/**/*.ts', 'test/*.ts'],
-            parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
+            parserOptions: { project: 'tsconfig.json' },
         },
         {
             src: 'test/spec/**/*.ts',
             envs: 'mocha',
-            parserOptions: { project: 'tsconfig.json', sourceType: 'module' },
+            parserOptions: { project: 'tsconfig.json' },
         },
         {
             src: ['gulpfile.js', 'dev/**/*.js'],
+            jsVersion: 2022,
             envs: 'node',
-            parserOptions: { ecmaVersion: 2022, sourceType: 'module' },
+            parserOptions: { sourceType: 'module' },
         },
         { src: 'test/node-legacy-adapter.js', envs: 'node' },
         { src: 'test/sinon-ie-adapter.js', envs: 'browser' },

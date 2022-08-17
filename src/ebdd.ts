@@ -523,6 +523,18 @@ readonly ParamList<[OutParamType]>[]
 {
     if (params !== undefined && params !== null)
     {
+        const createParamList =
+        (paramOrParamInfo: ParamOrParamInfo<InParamType>): ParamList<[OutParamType]> =>
+        {
+            const { param: inParam, mode: inMode } =
+            getParamAndMode(paramOrParamInfo, baseMode);
+            const outParamOrParamInfo =
+            paramMapper ? paramMapper(inParam) : inParam as unknown as OutParamType;
+            const { param: outParam, mode: outMode } = getParamAndMode(outParamOrParamInfo, inMode);
+            const paramList: [OutParamType] = [outParam];
+            makeParamList(paramList, outMode);
+            return paramList;
+        };
         const paramLists =
         Array.prototype.map.call
         <
@@ -530,21 +542,7 @@ readonly ParamList<[OutParamType]>[]
         [(paramOrParamInfo: ParamOrParamInfo<InParamType>) => ParamList<[OutParamType]>],
         ParamList<[OutParamType]>[]
         >
-        (
-            params,
-            (paramOrParamInfo: ParamOrParamInfo<InParamType>): ParamList<[OutParamType]> =>
-            {
-                const { param: inParam, mode: inMode } =
-                getParamAndMode(paramOrParamInfo, baseMode);
-                const outParamOrParamInfo =
-                paramMapper ? paramMapper(inParam) : inParam as unknown as OutParamType;
-                const { param: outParam, mode: outMode } =
-                getParamAndMode(outParamOrParamInfo, inMode);
-                const paramList: [OutParamType] = [outParam];
-                makeParamList(paramList, outMode);
-                return paramList;
-            },
-        );
+        (params, createParamList);
         if (paramLists.length)
             return paramLists;
     }
