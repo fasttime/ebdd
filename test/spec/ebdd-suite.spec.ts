@@ -1,7 +1,7 @@
 import type
 { ParamInfo, ParamOrParamInfo, ParameterizedSuiteFunction, UnparameterizedSuiteFunction }
 from '../../src/ebdd';
-import { clear, isArrayBased, loadEBDD }                        from './utils';
+import { EMPTY_OBJ, isArrayBased, loadEBDD }                    from './utils';
 import type { CallCountingStub }                                from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }             from 'assert';
 import { Suite, interfaces }                                    from 'mocha';
@@ -226,7 +226,7 @@ describe
         (
             (): void =>
             {
-                ({ bddDescribe, bddDescribeOnly, bddDescribeSkip, ebdd } = clear());
+                ({ bddDescribe, bddDescribeOnly, bddDescribeSkip, ebdd } = EMPTY_OBJ);
             },
         );
 

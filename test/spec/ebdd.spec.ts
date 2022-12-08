@@ -1,5 +1,5 @@
 import ebdd                             from '../../src/ebdd';
-import { clear }                        from './utils';
+import { EMPTY_OBJ }                    from './utils';
 import { ok, strictEqual }              from 'assert';
 import Mocha, { Suite, interfaces }     from 'mocha';
 import type { MochaGlobals }            from 'mocha';
@@ -63,7 +63,7 @@ describe
             (): void =>
             {
                 delete (interfaces as Partial<typeof interfaces>).ebdd;
-                ({ sandbox } = clear());
+                ({ sandbox } = EMPTY_OBJ);
             },
         );
 

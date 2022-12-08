@@ -1,7 +1,7 @@
 import type
 { ParamInfo, ParamOrParamInfo, ParameterizedTestFunction, UnparameterizedTestFunction }
 from '../../src/ebdd';
-import { clear, isArrayBased, loadEBDD }                            from './utils';
+import { EMPTY_OBJ, isArrayBased, loadEBDD }                        from './utils';
 import type { CallCountingStub }                                    from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
 import { Suite, Test, interfaces }                                  from 'mocha';
@@ -280,7 +280,7 @@ describe
         (
             (): void =>
             {
-                ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent, sandbox } = clear());
+                ({ bddIt, bddItOnly, bddItSkip, ebdd, expectedParent, sandbox } = EMPTY_OBJ);
             },
         );
 

@@ -1,6 +1,6 @@
-import type { ParamInfo }   from '../../src/ebdd';
-import { clear, loadEBDD }  from './utils';
-import { throws }           from 'assert';
+import type { ParamInfo }       from '../../src/ebdd';
+import { EMPTY_OBJ, loadEBDD }  from './utils';
+import { throws }               from 'assert';
 
 describe
 (
@@ -23,7 +23,7 @@ describe
         (
             (): void =>
             {
-                ({ only, skip } = clear());
+                ({ only, skip } = EMPTY_OBJ);
             },
         );
 
