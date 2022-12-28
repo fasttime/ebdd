@@ -538,9 +538,9 @@ readonly ParamList<[OutParamType]>[]
         const paramLists =
         Array.prototype.map.call
         <
-        ParamCollection<InParamType>,
-        [(paramOrParamInfo: ParamOrParamInfo<InParamType>) => ParamList<[OutParamType]>],
-        ParamList<[OutParamType]>[]
+            ParamCollection<InParamType>,
+            [(paramOrParamInfo: ParamOrParamInfo<InParamType>) => ParamList<[OutParamType]>],
+            ParamList<[OutParamType]>[]
         >
         (params, createParamList);
         if (paramLists.length)
