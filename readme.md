@@ -45,5 +45,5 @@ mocha.run();
 </script>
 ```
 
-[npm badge]: https://badge.fury.io/js/ebdd.svg
+[npm badge]: https://img.shields.io/npm/v/ebdd?logo=npm
 [npm url]: https://www.npmjs.com/package/ebdd

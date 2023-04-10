@@ -7,8 +7,6 @@
     "mocha",
     "test"
   ],
-  "homepage": "https://github.com/fasttime/EBDD",
-  "bugs": "https://github.com/fasttime/EBDD/issues",
   "license": "ISC",
   "author": "Francesco Trotta <ft@fasttime.org> (https://github.com/fasttime)",
   "files": [
@@ -36,6 +34,7 @@
     "make-lib": "node dev/make-lib.mjs",
     "prepare": "node dev/patch-sinon.mjs",
     "prepare-legacy-test": "node dev/prepare-legacy-test.mjs",
+    "release": "npm version -m 'Version %s' --tag-version-prefix=",
     "test": "mocha --check-leaks --require=ts-node/register test/spec/**/*.spec.ts"
   },
   "devDependencies": {
@@ -43,7 +42,7 @@
     "@rollup/plugin-node-resolve": "latest",
     "@types/mocha": "latest",
     "@types/sinon": "latest",
-    "fast-glob": "latest",
+    "glob": "latest",
     "gulp": "latest",
     "gulp-ignore": "latest",
     "gulp-rename": "latest",
@@ -61,7 +60,7 @@
     "sinon": "9",
     "ts-node": "latest",
     "tslib": "2",
-    "typescript": "4.9"
+    "typescript": "5.0"
   },
   "peerDependencies": {
     "@types/mocha": ">=7",
