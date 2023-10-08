@@ -43,5 +43,5 @@ if (typeof self !== 'undefined')
 if (!installed)
 {
     const message = 'EBDD failed to set up because no Node.js or browser environment was detected.';
-    throw new Error(message);
+    throw Error(message);
 }

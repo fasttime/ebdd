@@ -1,13 +1,13 @@
 import type
 { ParamInfo, ParamOrParamInfo, ParameterizedSuiteFunction, UnparameterizedSuiteFunction }
 from '../../src/ebdd';
-import { EMPTY_OBJ, isArrayBased, loadEBDD }                    from './utils';
-import type { CallCountingStub }                                from './utils';
-import { deepStrictEqual, ok, strictEqual, throws }             from 'assert';
-import { Suite, interfaces }                                    from 'mocha';
-import type { Context, MochaGlobals, SuiteFunction }            from 'mocha';
-import { createSandbox, spy }                                   from 'sinon';
-import type { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub } from 'sinon';
+
+import { type CallCountingStub, EMPTY_OBJ, isArrayBased, loadEBDD }                 from './utils';
+import { deepStrictEqual, ok, strictEqual, throws }                                 from 'assert';
+import { type Context, type MochaGlobals, Suite, type SuiteFunction, interfaces }   from 'mocha';
+
+import { type SinonSandbox, type SinonSpy, type SinonSpyCall, type SinonStub, createSandbox, spy }
+from 'sinon';
 
 describe
 (

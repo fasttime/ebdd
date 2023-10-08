@@ -1,13 +1,25 @@
 import type
 { ParamInfo, ParamOrParamInfo, ParameterizedTestFunction, UnparameterizedTestFunction }
 from '../../src/ebdd';
-import { EMPTY_OBJ, isArrayBased, loadEBDD }                        from './utils';
-import type { CallCountingStub }                                    from './utils';
+
+import { type CallCountingStub, EMPTY_OBJ, isArrayBased, loadEBDD } from './utils';
 import { deepStrictEqual, ok, strictEqual, throws }                 from 'assert';
-import { Suite, Test, interfaces }                                  from 'mocha';
-import type { AsyncFunc, Done, Func, MochaGlobals, TestFunction }   from 'mocha';
-import { createSandbox, spy }                                       from 'sinon';
-import type { SinonSandbox, SinonSpy, SinonSpyCall, SinonStub }     from 'sinon';
+
+import
+{
+    type AsyncFunc,
+    type Done,
+    type Func,
+    type MochaGlobals,
+    Suite,
+    Test,
+    type TestFunction,
+    interfaces,
+}
+from 'mocha';
+
+import { type SinonSandbox, type SinonSpy, type SinonSpyCall, type SinonStub, createSandbox, spy }
+from 'sinon';
 
 describe
 (

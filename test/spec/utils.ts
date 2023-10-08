@@ -1,7 +1,6 @@
-import ebdd                     from '../../src/ebdd';
-import Mocha, { interfaces }    from 'mocha';
-import type { MochaGlobals }    from 'mocha';
-import type { SinonStub }       from 'sinon';
+import ebdd                                     from '../../src/ebdd';
+import Mocha, { type MochaGlobals, interfaces } from 'mocha';
+import type { SinonStub }                       from 'sinon';
 
 export const EMPTY_OBJ = Object.create(null) as Record<PropertyKey, any>;
 

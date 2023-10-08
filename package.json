@@ -60,7 +60,7 @@
     "sinon": "9",
     "ts-node": "latest",
     "tslib": "2",
-    "typescript": "5.0"
+    "typescript": "5.2"
   },
   "peerDependencies": {
     "@types/mocha": ">=7",

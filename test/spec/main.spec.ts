@@ -1,7 +1,6 @@
-import ebdd                         from '../../src/ebdd';
-import { strictEqual, throws }      from 'assert';
-import postrequire                  from 'postrequire';
-import type { PostrequireStubs }    from 'postrequire';
+import ebdd                                     from '../../src/ebdd';
+import { strictEqual, throws }                  from 'assert';
+import postrequire, { type PostrequireStubs }   from 'postrequire';
 
 function requireMain(stubs?: Readonly<Partial<PostrequireStubs>>): unknown
 {
